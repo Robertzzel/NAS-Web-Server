@@ -5,10 +5,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"os"
-	"strings"
 )
 
-func DownloadFileInlinePost(c echo.Context) error {
+func DownloadFileInlineGet(c echo.Context) error {
 	cookie, err := c.Cookie("ftp")
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
@@ -18,20 +17,11 @@ func DownloadFileInlinePost(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
-	pathDict := make(map[string]string)
-	err = c.Bind(&pathDict)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
-	}
+	file := c.Param("file")
 
-	currentPath, pathExists := pathDict["path"]
-	if !pathExists || !strings.HasPrefix(currentPath, "/") {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
-	}
+	file = userDetails.BasePath + file
 
-	currentPath = userDetails.BasePath + currentPath
-
-	fileInfo, err := os.Stat(currentPath)
+	fileInfo, err := os.Stat(file)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'Does not exist'")
 	}
@@ -40,5 +30,5 @@ func DownloadFileInlinePost(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
 	}
 
-	return c.Inline(currentPath, currentPath)
+	return c.Inline(file, file)
 }

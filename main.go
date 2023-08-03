@@ -19,6 +19,6 @@ func main() {
 	e.POST("/api/list", ListPost)
 	e.POST("/api/rm", RemovePost)
 	e.GET("/api/dwat/:file", DownloadFileAttachmentGet)
-	e.POST("/api/dwin", DownloadFileInlinePost)
+	e.GET("/api/dwin/:file", DownloadFileInlineGet)
 	e.Logger.Fatal(e.Start(":8000"))
 }
