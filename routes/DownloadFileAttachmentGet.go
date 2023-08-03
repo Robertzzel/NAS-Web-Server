@@ -19,9 +19,9 @@ func DownloadFileAttachmentGet(c echo.Context) error {
 
 	file := c.Param("file")
 
-	file = userDetails.BasePath + file
+	fullFilename := userDetails.BasePath + file
 
-	fileInfo, err := os.Stat(file)
+	fileInfo, err := os.Stat(fullFilename)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'Does not exist'")
 	}
@@ -30,5 +30,7 @@ func DownloadFileAttachmentGet(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
 	}
 
-	return c.File(file)
+	c.Response().Header().Set("Content-Disposition", "attachment; filename="+file)
+
+	return c.File(fullFilename)
 }

@@ -9,7 +9,45 @@ import (
 	"strings"
 )
 
-func UnzipSource(source, destination string) error {
+func Zip(inputDirectory string, outputFile string) error {
+	file, err := os.Create(outputFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := zip.NewWriter(file)
+	defer w.Close()
+
+	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		f, err := w.Create(path)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(f, file)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+	return filepath.Walk(inputDirectory, walker)
+}
+
+func Unzip(source, destination string) error {
 	// 1. Open the zip file
 	reader, err := zip.OpenReader(source)
 	if err != nil {
