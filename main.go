@@ -21,5 +21,6 @@ func main() {
 	e.GET("/api/dwat/:file", DownloadFileAttachmentGet)
 	e.GET("/api/dwin/:file", DownloadFileInlineGet)
 	e.GET("/api/dwdr/:file", DownloadDirectoryGet)
+	e.POST("/api/upload", UploadFilesPost)
 	e.Logger.Fatal(e.Start(":8000"))
 }
