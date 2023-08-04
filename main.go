@@ -22,5 +22,6 @@ func main() {
 	e.GET("/api/dwin/:file", DownloadFileInlineGet)
 	e.GET("/api/dwdr/:file", DownloadDirectoryGet)
 	e.POST("/api/upload", UploadFilesPost)
+	e.POST("/api/directory", CreateDirectoryPost)
 	e.Logger.Fatal(e.Start(":8000"))
 }
