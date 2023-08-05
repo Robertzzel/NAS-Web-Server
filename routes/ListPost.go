@@ -51,8 +51,8 @@ func ListPost(c echo.Context) error {
 			info, err := file.Info()
 			if err == nil {
 				fileDetails.Size = info.Size()
+				fileDetails.CreatingTime = info.ModTime().Unix()
 			}
-
 			if strings.Contains(fileType, "image") {
 				fileDetails.ImageData, err = Resize(filepath.Join(currentPath, file.Name()), 64, 64)
 				if err != nil {

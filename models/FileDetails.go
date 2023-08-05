@@ -7,11 +7,12 @@ import (
 )
 
 type FileDetails struct {
-	Name      string
-	Size      int64
-	IsDir     bool
-	Type      string
-	ImageData []byte
+	Name         string
+	Size         int64
+	IsDir        bool
+	Type         string
+	ImageData    []byte
+	CreatingTime int64
 }
 
 func GetFileType(filePath string) (string, error) {
