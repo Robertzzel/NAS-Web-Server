@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os"
+	"path"
 	"time"
 )
 
@@ -28,12 +30,16 @@ func LoginPOST(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusUnauthorized, "'message': 'Wrong username or password'")
 	}
+	usersDisrectory := path.Join(BasePath, user.Username)
+	if _, err = os.Stat(usersDisrectory); err != nil {
+		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
+	}
 
 	cookie := new(http.Cookie)
 	cookie.Name = "ftp"
 	cookie.Value = uuid.New().String()
 	cookie.Expires = time.Now().Add(24 * time.Hour)
-	Sessions[cookie.Value] = models.UserDetails{BasePath: "/home/robert/Downloads/Robertzzel"}
+	Sessions[cookie.Value] = models.UserSession{BasePath: usersDisrectory, Username: user.Username}
 	c.SetCookie(cookie)
 
 	return c.JSON(http.StatusOK, "Hello, World!")

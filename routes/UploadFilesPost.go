@@ -1,12 +1,14 @@
 package routes
 
 import (
+	. "NAS-Server-Web/operations"
 	. "NAS-Server-Web/settings"
 	"github.com/labstack/echo/v4"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 func UploadFilesPost(c echo.Context) error {
@@ -20,10 +22,27 @@ func UploadFilesPost(c echo.Context) error {
 	}
 
 	filename := c.FormValue("filename")
+	totalSizeParam := c.FormValue("size")
+	totalSize, err := strconv.Atoi(totalSizeParam)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "'message': 'Bad parameters'")
+	}
+	remainingMemory, err := GetUserRemainingMemory(userDetails.Username)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
+	}
+
+	if remainingMemory < int64(totalSize) {
+		return c.JSON(http.StatusBadRequest, "'message': 'No memory for the upload'")
+	}
 
 	file, err := c.FormFile("file")
 	if err != nil {
 		return err
+	}
+
+	if remainingMemory < file.Size {
+		return c.JSON(http.StatusBadRequest, "'message': 'No memory for the upload'")
 	}
 
 	src, err := file.Open()

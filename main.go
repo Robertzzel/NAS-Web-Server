@@ -23,5 +23,7 @@ func main() {
 	e.GET("/api/dwdr/:file", DownloadDirectoryGet)
 	e.POST("/api/upload", UploadFilesPost)
 	e.POST("/api/directory", CreateDirectoryPost)
+	e.POST("/api/rename", RenameFilePost)
+	e.GET("/api/details", UserDetailsGet)
 	e.Logger.Fatal(e.Start(":8000"))
 }
