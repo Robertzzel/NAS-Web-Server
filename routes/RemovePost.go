@@ -37,11 +37,13 @@ func RemovePost(c echo.Context) error {
 	}
 
 	if fileInfo.IsDir() {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
-	}
-
-	if err := os.Remove(currentPath); err != nil {
-		return c.JSON(http.StatusInternalServerError, "'message': 'Error on files removal'")
+		if err := os.RemoveAll(currentPath); err != nil {
+			return c.JSON(http.StatusInternalServerError, "'message': 'Error on files removal'")
+		}
+	} else {
+		if err := os.Remove(currentPath); err != nil {
+			return c.JSON(http.StatusInternalServerError, "'message': 'Error on files removal'")
+		}
 	}
 
 	return c.JSON(http.StatusOK, "")
