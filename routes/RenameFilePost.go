@@ -9,17 +9,17 @@ import (
 )
 
 func RenameFilePost(c echo.Context) error {
-	cookie, err := c.Cookie("ftp")
-	if err != nil {
+	session := operations.GetSession(c)
+	if session == "" {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
-	userDetails, hasPath := Sessions[cookie.Value]
+	userDetails, hasPath := Sessions[session]
 	if !hasPath {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
 	request := make(map[string]string)
-	err = c.Bind(&request)
+	err := c.Bind(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"NAS-Server-Web/operations"
 	. "NAS-Server-Web/settings"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -9,17 +10,17 @@ import (
 )
 
 func RemovePost(c echo.Context) error {
-	cookie, err := c.Cookie("ftp")
-	if err != nil {
+	session := operations.GetSession(c)
+	if session == "" {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
-	userDetails, hasPath := Sessions[cookie.Value]
+	userDetails, hasPath := Sessions[session]
 	if !hasPath {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
 	pathDict := make(map[string]string)
-	err = c.Bind(&pathDict)
+	err := c.Bind(&pathDict)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}

@@ -11,11 +11,11 @@ import (
 )
 
 func DownloadDirectoryGet(c echo.Context) error {
-	cookie, err := c.Cookie("ftp")
-	if err != nil {
+	session := operations.GetSession(c)
+	if session == "" {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
-	userDetails, hasPath := Sessions[cookie.Value]
+	userDetails, hasPath := Sessions[session]
 	if !hasPath {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}

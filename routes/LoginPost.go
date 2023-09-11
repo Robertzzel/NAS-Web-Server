@@ -4,6 +4,7 @@ import (
 	"NAS-Server-Web/database"
 	"NAS-Server-Web/models"
 	. "NAS-Server-Web/settings"
+	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -42,5 +43,9 @@ func LoginPOST(c echo.Context) error {
 	Sessions[cookie.Value] = models.UserSession{BasePath: usersDisrectory, Username: user.Username}
 	c.SetCookie(cookie)
 
-	return c.JSON(http.StatusOK, "Hello, World!")
+	marshal, err := json.Marshal(cookie)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
+	}
+	return c.JSONBlob(http.StatusOK, marshal)
 }

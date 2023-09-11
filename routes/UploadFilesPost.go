@@ -12,11 +12,11 @@ import (
 )
 
 func UploadFilesPost(c echo.Context) error {
-	cookie, err := c.Cookie("ftp")
-	if err != nil {
+	session := GetSession(c)
+	if session == "" {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
-	userDetails, hasPath := Sessions[cookie.Value]
+	userDetails, hasPath := Sessions[session]
 	if !hasPath {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}

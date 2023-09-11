@@ -4,17 +4,19 @@ import (
 	. "NAS-Server-Web/routes"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"net/http"
 )
 
 func main() {
 	e := echo.New()
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:4200"},
-		AllowCredentials: true,
-	}))
+	e.Use(middleware.CORS())
 
+	e.GET("/", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, "Hello World")
+	})
 	e.POST("/api/login", LoginPOST)
 	e.POST("/api/list", ListPost)
 	e.POST("/api/rm", RemovePost)
@@ -25,5 +27,6 @@ func main() {
 	e.POST("/api/directory", CreateDirectoryPost)
 	e.POST("/api/rename", RenameFilePost)
 	e.GET("/api/details", UserDetailsGet)
-	e.Logger.Fatal(e.Start(":8000"))
+
+	e.Logger.Fatal(e.Start("localhost:33334"))
 }
