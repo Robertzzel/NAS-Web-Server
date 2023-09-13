@@ -1,26 +1,21 @@
 package routes
 
 import (
-	"NAS-Server-Web/operations"
-	. "NAS-Server-Web/settings"
+	"NAS-Server-Web/services/filesService"
+	"NAS-Server-Web/services/sessionService"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 )
 
 func RenameFilePost(c echo.Context) error {
-	session := operations.GetSession(c)
-	if session == "" {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
-	}
-	userDetails, hasPath := Sessions[session]
-	if !hasPath {
+	session, err := sessionService.GetSession(c)
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
 	request := make(map[string]string)
-	err := c.Bind(&request)
-	if err != nil {
+
+	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
 
@@ -30,15 +25,8 @@ func RenameFilePost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "'message': 'Bad parameters'")
 	}
 
-	oldName = userDetails.BasePath + oldName
-	newName = userDetails.BasePath + newName
-
-	if operations.IsPathSafe(oldName) && operations.IsPathSafe(newName) {
-		return c.JSON(http.StatusBadRequest, "'message': 'Bad parameters'")
-	}
-
-	if err = os.Rename(oldName, newName); err != nil {
-		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
+	if err = filesService.RenameFile(session, oldName, newName); err != nil {
+		return c.JSON(http.StatusBadRequest, "'message': 'cannot rename file'")
 	}
 
 	return c.JSON(http.StatusOK, "")

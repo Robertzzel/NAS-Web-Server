@@ -1,26 +1,27 @@
-package database
+package databaseService
 
 import (
-	"NAS-Server-Web/operations"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type DatabaseManager struct {
+type DatabaseService struct {
 	*sql.DB
 }
 
-var instance *DatabaseManager = nil
+var instance *DatabaseService = nil
 
-func GetDatabase(databaseLocation string) (*DatabaseManager, error) {
+func NewDatabaseService(databaseLocation string) (*DatabaseService, error) {
 	if instance == nil {
 		db, err := sql.Open("sqlite3", databaseLocation)
 		if err != nil {
 			return nil, err
 		}
 
-		dm := DatabaseManager{db}
+		dm := DatabaseService{db}
 		if err = dm.migrateDatabase(); err != nil {
 			return nil, err
 		}
@@ -31,16 +32,16 @@ func GetDatabase(databaseLocation string) (*DatabaseManager, error) {
 	return instance, nil
 }
 
-func (db *DatabaseManager) Login(username, password string) (bool, error) {
+func (db *DatabaseService) Login(username, password string) (bool, error) {
 	var cnt int
-	err := db.QueryRow(`select count(*) from User where Name = ? and Password = ? LIMIT 1`, username, operations.Hash(password)).Scan(&cnt)
+	err := db.QueryRow(`select count(*) from User where Name = ? and Password = ? LIMIT 1`, username, hash(password)).Scan(&cnt)
 	if err != nil {
 		return false, errors.New("database problem")
 	}
 	return cnt != 0, nil
 }
 
-func (db *DatabaseManager) CheckUsernameExists(username string) (bool, error) {
+func (db *DatabaseService) CheckUsernameExists(username string) (bool, error) {
 	var cnt int
 	err := db.QueryRow(`select count(*) from User where Name = ? LIMIT 1`, username).Scan(&cnt)
 	if err != nil {
@@ -49,7 +50,7 @@ func (db *DatabaseManager) CheckUsernameExists(username string) (bool, error) {
 	return cnt != 0, nil
 }
 
-func (db *DatabaseManager) GetAll() ([]string, error) {
+func (db *DatabaseService) GetAll() ([]string, error) {
 	var name, password string
 	var res []string
 	row, err := db.Query(`select Name, Password from User`)
@@ -66,7 +67,11 @@ func (db *DatabaseManager) GetAll() ([]string, error) {
 	return res, nil
 }
 
-func (db *DatabaseManager) migrateDatabase() error {
+func (db *DatabaseService) Close() {
+	db.Close()
+}
+
+func (db *DatabaseService) migrateDatabase() error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS User(
     	Id integer PRIMARY KEY,
 		Name varchar(255) UNIQUE NOT NULL,
@@ -79,6 +84,6 @@ func (db *DatabaseManager) migrateDatabase() error {
 	return nil
 }
 
-func (db *DatabaseManager) Close() {
-	db.Close()
+func hash(password string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
 }

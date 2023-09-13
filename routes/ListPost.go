@@ -2,8 +2,7 @@ package routes
 
 import (
 	. "NAS-Server-Web/models"
-	"NAS-Server-Web/operations"
-	. "NAS-Server-Web/settings"
+	"NAS-Server-Web/services/sessionService"
 	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -13,17 +12,13 @@ import (
 )
 
 func ListPost(c echo.Context) error {
-	session := operations.GetSession(c)
-	if session == "" {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
-	}
-	userDetails, hasPath := Sessions[session]
-	if !hasPath {
+	session, err := sessionService.GetSession(c)
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
 	pathDict := make(map[string]string)
-	err := c.Bind(&pathDict)
+	err = c.Bind(&pathDict)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
@@ -32,7 +27,7 @@ func ListPost(c echo.Context) error {
 	if !pathExists || !strings.HasPrefix(currentPath, "/") {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
 	}
-	currentPath = userDetails.BasePath + currentPath
+	currentPath = session.BasePath + currentPath
 
 	fileInfo, err := os.Stat(currentPath)
 	if err != nil {

@@ -1,15 +1,14 @@
 package routes
 
 import (
-	"NAS-Server-Web/database"
 	"NAS-Server-Web/models"
+	"NAS-Server-Web/services/databaseService"
+	"NAS-Server-Web/services/sessionService"
 	. "NAS-Server-Web/settings"
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
-	"path"
 	"time"
 )
 
@@ -20,7 +19,7 @@ func LoginPOST(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
 
-	dbInstance, err := database.GetDatabase(DatabasePath)
+	dbInstance, err := databaseService.NewDatabaseService(DatabasePath)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
@@ -31,18 +30,17 @@ func LoginPOST(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusUnauthorized, "'message': 'Wrong username or password'")
 	}
-	usersDisrectory := path.Join(BasePath, user.Username)
-	if _, err = os.Stat(usersDisrectory); err != nil {
-		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
-	}
 
 	cookie := new(http.Cookie)
 	cookie.Name = "ftp"
 	cookie.Value = uuid.New().String()
 	cookie.Expires = time.Now().Add(24 * time.Hour)
-	Sessions[cookie.Value] = models.UserSession{BasePath: usersDisrectory, Username: user.Username}
-	c.SetCookie(cookie)
 
+	if err := sessionService.NewSession(cookie.Value, user.Username); err != nil {
+		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
+	}
+
+	c.SetCookie(cookie)
 	marshal, err := json.Marshal(cookie)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")

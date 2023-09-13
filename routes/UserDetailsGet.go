@@ -2,7 +2,8 @@ package routes
 
 import (
 	"NAS-Server-Web/models"
-	. "NAS-Server-Web/operations"
+	. "NAS-Server-Web/services/filesService"
+	. "NAS-Server-Web/services/sessionService"
 	. "NAS-Server-Web/settings"
 	"encoding/json"
 	"github.com/labstack/echo/v4"
@@ -10,20 +11,16 @@ import (
 )
 
 func UserDetailsGet(c echo.Context) error {
-	session := GetSession(c)
-	if session == "" {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
-	}
-	userDetails, hasPath := Sessions[session]
-	if !hasPath {
+	session, err := GetSession(c)
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
-	usedMemory, err := GetUserUsedMemory(userDetails.Username)
+	usedMemory, err := GetUserUsedMemory(session.Username)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
-	user := models.UserMemoryDetails{Username: userDetails.Username, Max: MemoryPerUsed, Used: usedMemory}
+	user := models.UserMemoryDetails{Username: session.Username, Max: MemoryPerUsed, Used: usedMemory}
 
 	res, err := json.Marshal(user)
 	if err != nil {

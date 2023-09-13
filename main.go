@@ -23,7 +23,7 @@ func main() {
 	e.GET("/api/dwat/:file", DownloadFileAttachmentGet)
 	e.GET("/api/dwin/:file", DownloadFileInlineGet)
 	e.GET("/api/dwdr/:file", DownloadDirectoryGet)
-	e.POST("/api/upload", UploadFilesPost)
+	e.POST("/api/upload/:name", UploadFilesPost)
 	e.POST("/api/directory", CreateDirectoryPost)
 	e.POST("/api/rename", RenameFilePost)
 	e.GET("/api/details", UserDetailsGet)

@@ -1,27 +1,21 @@
 package routes
 
 import (
-	"NAS-Server-Web/operations"
-	. "NAS-Server-Web/settings"
+	"NAS-Server-Web/services/filesService"
+	"NAS-Server-Web/services/sessionService"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 	"strings"
 )
 
 func RemovePost(c echo.Context) error {
-	session := operations.GetSession(c)
-	if session == "" {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
-	}
-	userDetails, hasPath := Sessions[session]
-	if !hasPath {
+	session, err := sessionService.GetSession(c)
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
 	pathDict := make(map[string]string)
-	err := c.Bind(&pathDict)
-	if err != nil {
+	if err = c.Bind(&pathDict); err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
 
@@ -30,21 +24,8 @@ func RemovePost(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
 	}
 
-	currentPath = userDetails.BasePath + currentPath
-
-	fileInfo, err := os.Stat(currentPath)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "'message': 'Does not exist'")
-	}
-
-	if fileInfo.IsDir() {
-		if err := os.RemoveAll(currentPath); err != nil {
-			return c.JSON(http.StatusInternalServerError, "'message': 'Error on files removal'")
-		}
-	} else {
-		if err := os.Remove(currentPath); err != nil {
-			return c.JSON(http.StatusInternalServerError, "'message': 'Error on files removal'")
-		}
+	if err = filesService.RemoveFile(session, currentPath); err != nil {
+		return c.JSON(http.StatusBadRequest, "'message': 'cannot delete file'")
 	}
 
 	return c.JSON(http.StatusOK, "")

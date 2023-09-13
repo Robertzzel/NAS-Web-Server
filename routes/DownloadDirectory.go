@@ -1,43 +1,28 @@
 package routes
 
 import (
-	"NAS-Server-Web/operations"
-	. "NAS-Server-Web/settings"
-	"github.com/google/uuid"
+	"NAS-Server-Web/services/filesService"
+	"NAS-Server-Web/services/sessionService"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"os"
-	"path"
 )
 
 func DownloadDirectoryGet(c echo.Context) error {
-	session := operations.GetSession(c)
-	if session == "" {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
-	}
-	userDetails, hasPath := Sessions[session]
-	if !hasPath {
+	session, err := sessionService.GetSession(c)
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
 	}
 
 	file := c.Param("file")
-	fullFilename := path.Join(userDetails.BasePath, file)
 
-	fileInfo, err := os.Stat(fullFilename)
+	filepath, err := filesService.GetFile(session, file)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "'message': 'Does not exist'")
-	}
-	if !fileInfo.IsDir() {
-		return c.JSON(http.StatusUnauthorized, "'message': 'Does not exist'")
-	}
-
-	outputPath := path.Join(userDetails.BasePath, uuid.New().String())
-	if err = operations.Zip(fullFilename, outputPath); err != nil {
-		return c.JSON(http.StatusInternalServerError, "'message': 'Server error on zip'")
+		return c.JSON(http.StatusBadRequest, "'message': '"+err.Error()+"'")
 	}
 	defer func() {
-		_ = os.Remove(outputPath)
+		_ = os.Remove(filepath)
 	}()
 
-	return c.File(outputPath)
+	return c.File(filepath)
 }
