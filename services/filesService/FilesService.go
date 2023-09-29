@@ -2,7 +2,6 @@ package filesService
 
 import (
 	"NAS-Server-Web/models"
-	. "NAS-Server-Web/settings"
 	"archive/zip"
 	"errors"
 	"github.com/google/uuid"
@@ -11,6 +10,11 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+)
+
+const (
+	MemoryPerUsed = 10 * 1024 * 1024 * 1024
+	BasePath      = "/home/robert/Downloads/NAS"
 )
 
 func UploadFile(session models.UserSession, filename string, reader io.Reader, size int64) error {

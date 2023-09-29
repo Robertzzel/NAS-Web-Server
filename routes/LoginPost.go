@@ -4,7 +4,6 @@ import (
 	"NAS-Server-Web/models"
 	"NAS-Server-Web/services/databaseService"
 	"NAS-Server-Web/services/sessionService"
-	. "NAS-Server-Web/settings"
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -19,7 +18,7 @@ func LoginPOST(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
 
-	dbInstance, err := databaseService.NewDatabaseService(DatabasePath)
+	dbInstance, err := databaseService.NewDatabaseService(databaseService.DatabasePath)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}

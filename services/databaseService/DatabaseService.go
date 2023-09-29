@@ -8,6 +8,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	DatabasePath = "/home/robert/Workspace/FTP-NAS-SV/database.db"
+)
+
 type DatabaseService struct {
 	*sql.DB
 }

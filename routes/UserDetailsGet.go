@@ -4,7 +4,6 @@ import (
 	"NAS-Server-Web/models"
 	. "NAS-Server-Web/services/filesService"
 	. "NAS-Server-Web/services/sessionService"
-	. "NAS-Server-Web/settings"
 	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
