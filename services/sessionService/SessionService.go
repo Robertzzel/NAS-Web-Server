@@ -2,7 +2,7 @@ package sessionService
 
 import (
 	"NAS-Server-Web/models"
-	"NAS-Server-Web/services/databaseService"
+	"NAS-Server-Web/services/configsService"
 	"errors"
 	"github.com/labstack/echo/v4"
 	"os"
@@ -29,7 +29,12 @@ func GetSession(ctx echo.Context) (models.UserSession, error) {
 }
 
 func NewSession(key string, username string) error {
-	directory := path.Join(databaseService.DatabasePath, username)
+	configs, err := configsService.NewConfigsService()
+	if err != nil {
+		return err
+	}
+
+	directory := path.Join(configs.GetBaseFilesPath(), username)
 	if _, err := os.Stat(directory); err != nil {
 		return err
 	}

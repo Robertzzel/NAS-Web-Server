@@ -18,7 +18,7 @@ func LoginPOST(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
 
-	dbInstance, err := databaseService.NewDatabaseService(databaseService.DatabasePath)
+	dbInstance, err := databaseService.NewDatabaseService()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}

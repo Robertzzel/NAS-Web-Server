@@ -2,6 +2,7 @@ package filesService
 
 import (
 	"NAS-Server-Web/models"
+	"NAS-Server-Web/services/configsService"
 	"archive/zip"
 	"errors"
 	"github.com/google/uuid"
@@ -10,11 +11,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-)
-
-const (
-	MemoryPerUsed = 10 * 1024 * 1024 * 1024
-	BasePath      = "/home/robert/Downloads/NAS"
 )
 
 func UploadFile(session models.UserSession, filename string, reader io.Reader, size int64) error {
@@ -99,7 +95,12 @@ func RenameFile(session models.UserSession, oldPath, newPath string) error {
 }
 
 func GetUserUsedMemory(username string) (int64, error) {
-	entries, err := os.ReadDir(BasePath)
+	configs, err := configsService.NewConfigsService()
+	if err != nil {
+		return 0, err
+	}
+
+	entries, err := os.ReadDir(configs.GetBaseFilesPath())
 	if err != nil {
 		return 0, err
 	}
@@ -112,7 +113,7 @@ func GetUserUsedMemory(username string) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		dirSize, err := DirSize(BasePath + "/" + info.Name())
+		dirSize, err := DirSize(configs.GetBaseFilesPath() + "/" + info.Name())
 		if err != nil {
 			return 0, err
 		}
@@ -123,11 +124,16 @@ func GetUserUsedMemory(username string) (int64, error) {
 }
 
 func GetUserRemainingMemory(username string) (int64, error) {
+	configs, err := configsService.NewConfigsService()
+	if err != nil {
+		return 0, err
+	}
+
 	used, err := GetUserUsedMemory(username)
 	if err != nil {
 		return 0, err
 	}
-	return MemoryPerUsed - used, nil
+	return configs.GetMemoryPerUser() - used, nil
 }
 
 func DirSize(path string) (int64, error) {

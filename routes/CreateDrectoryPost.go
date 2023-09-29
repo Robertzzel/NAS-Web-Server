@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strings"
 )
 
 func CreateDirectoryPost(c echo.Context) error {
@@ -27,7 +26,7 @@ func CreateDirectoryPost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "'message': 'no path provided'")
 	}
 	dirPath = path.Join(session.BasePath + dirPath)
-	if !strings.HasPrefix(dirPath, "/") && filesService.IsPathSafe(dirPath) {
+	if !filesService.IsPathSafe(dirPath) {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
 	}
 

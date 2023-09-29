@@ -1,0 +1,7 @@
+{
+  "host": "localhost",
+  "port": "33333",
+  "databasePath": "./database.db",
+  "baseFilesPath": "./files",
+  "memoryPerUser": "10737418240"
+}

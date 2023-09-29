@@ -2,6 +2,7 @@ package routes
 
 import (
 	"NAS-Server-Web/models"
+	"NAS-Server-Web/services/configsService"
 	. "NAS-Server-Web/services/filesService"
 	. "NAS-Server-Web/services/sessionService"
 	"encoding/json"
@@ -10,6 +11,11 @@ import (
 )
 
 func UserDetailsGet(c echo.Context) error {
+	configs, err := configsService.NewConfigsService()
+	if err != nil {
+		return err
+	}
+
 	session, err := GetSession(c)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
@@ -19,7 +25,7 @@ func UserDetailsGet(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "'message': 'Internal error'")
 	}
-	user := models.UserMemoryDetails{Username: session.Username, Max: MemoryPerUsed, Used: usedMemory}
+	user := models.UserMemoryDetails{Username: session.Username, Max: configs.GetMemoryPerUser(), Used: usedMemory}
 
 	res, err := json.Marshal(user)
 	if err != nil {

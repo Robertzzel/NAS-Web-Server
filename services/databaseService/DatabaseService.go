@@ -1,15 +1,12 @@
 package databaseService
 
 import (
+	"NAS-Server-Web/services/configsService"
 	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
-)
-
-const (
-	DatabasePath = "/home/robert/Workspace/FTP-NAS-SV/database.db"
 )
 
 type DatabaseService struct {
@@ -18,9 +15,14 @@ type DatabaseService struct {
 
 var instance *DatabaseService = nil
 
-func NewDatabaseService(databaseLocation string) (*DatabaseService, error) {
+func NewDatabaseService() (*DatabaseService, error) {
 	if instance == nil {
-		db, err := sql.Open("sqlite3", databaseLocation)
+		configs, err := configsService.NewConfigsService()
+		if err != nil {
+			return nil, err
+		}
+
+		db, err := sql.Open("sqlite3", configs.GetDatabasePath())
 		if err != nil {
 			return nil, err
 		}
@@ -71,8 +73,13 @@ func (db *DatabaseService) GetAll() ([]string, error) {
 	return res, nil
 }
 
+func (db *DatabaseService) AddUser(username, email, password string) error {
+	_, err := db.Exec(`INSERT INTO User (Name, Email, PASSWORD) VALUES (?, ?, ?)`, username, email, hash(password))
+	return err
+}
+
 func (db *DatabaseService) Close() {
-	db.Close()
+	db.DB.Close()
 }
 
 func (db *DatabaseService) migrateDatabase() error {
