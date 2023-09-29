@@ -2,14 +2,19 @@ package main
 
 import (
 	. "NAS-Server-Web/routes"
+	"NAS-Server-Web/services/configsService"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 )
 
 func main() {
-	e := echo.New()
+	configs, err := configsService.NewConfigsService()
+	if err != nil {
+		panic(err)
+	}
 
+	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
@@ -28,5 +33,5 @@ func main() {
 	e.POST("/api/rename", RenameFilePost)
 	e.GET("/api/details", UserDetailsGet)
 
-	e.Logger.Fatal(e.Start("localhost:33334"))
+	e.Logger.Fatal(e.Start(configs.GetHost() + ":" + configs.GetPort()))
 }

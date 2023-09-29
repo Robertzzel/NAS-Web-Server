@@ -17,7 +17,7 @@ var (
 type ConfigsService struct {
 	data          map[string]string
 	host          string
-	port          int64
+	port          string
 	databasePath  string
 	baseFilesBath string
 	memoryPerUser int64
@@ -36,10 +36,7 @@ func NewConfigsService() (*ConfigsService, error) {
 		}
 
 		serviceInstance.host = serviceInstance.data["host"]
-		serviceInstance.port, err = strconv.ParseInt(serviceInstance.data["port"], 10, 64)
-		if err != nil {
-			return nil, err
-		}
+		serviceInstance.port = serviceInstance.data["port"]
 		serviceInstance.databasePath = serviceInstance.data["databasePath"]
 		serviceInstance.baseFilesBath = serviceInstance.data["baseFilesPath"]
 		serviceInstance.memoryPerUser, err = strconv.ParseInt(serviceInstance.data["memoryPerUser"], 10, 64)
@@ -55,7 +52,7 @@ func (service ConfigsService) GetHost() string {
 	return service.host
 }
 
-func (service ConfigsService) GetPort() int64 {
+func (service ConfigsService) GetPort() string {
 	return service.port
 }
 
