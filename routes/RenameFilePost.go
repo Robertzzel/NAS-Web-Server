@@ -5,6 +5,7 @@ import (
 	"NAS-Server-Web/services/sessionService"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"path"
 )
 
 func RenameFilePost(c echo.Context) error {
@@ -25,7 +26,10 @@ func RenameFilePost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "'message': 'Bad parameters'")
 	}
 
-	if err = filesService.RenameFile(session, oldName, newName); err != nil {
+	oldName = path.Join(session.BasePath, oldName)
+	newName = path.Join(session.BasePath, newName)
+
+	if err = filesService.RenameFile(oldName, newName); err != nil {
 		return c.JSON(http.StatusBadRequest, "'message': 'cannot rename file'")
 	}
 

@@ -64,26 +64,21 @@ func GetFile(session models.UserSession, filename string) (string, error) {
 	return fullFilename, nil
 }
 
-func RemoveFile(session models.UserSession, filepath string) error {
-	fullFilePath := session.BasePath + filepath
-
-	_, err := os.Stat(fullFilePath)
+func RemoveFile(filepath string) error {
+	_, err := os.Stat(filepath)
 	if err != nil {
 		return errors.New("'message': 'File does not exist'")
 	}
 
-	if err := os.RemoveAll(fullFilePath); err != nil {
+	if err := os.RemoveAll(filepath); err != nil {
 		return errors.New("'message': 'Error on files removal'")
 	}
 
 	return nil
 }
 
-func RenameFile(session models.UserSession, oldPath, newPath string) error {
-	oldPath = session.BasePath + oldPath
-	newPath = session.BasePath + newPath
-
-	if IsPathSafe(oldPath) && IsPathSafe(newPath) {
+func RenameFile(oldPath, newPath string) error {
+	if !IsPathSafe(oldPath) || !IsPathSafe(newPath) {
 		return errors.New("bad parameters")
 	}
 

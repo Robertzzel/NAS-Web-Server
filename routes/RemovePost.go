@@ -5,6 +5,7 @@ import (
 	"NAS-Server-Web/services/sessionService"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -24,7 +25,8 @@ func RemovePost(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "'message': 'You have no access'")
 	}
 
-	if err = filesService.RemoveFile(session, currentPath); err != nil {
+	currentPath = path.Join(session.BasePath, currentPath)
+	if err = filesService.RemoveFile(currentPath); err != nil {
 		return c.JSON(http.StatusBadRequest, "'message': 'cannot delete file'")
 	}
 
