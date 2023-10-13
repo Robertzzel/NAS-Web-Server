@@ -1,8 +1,34 @@
 {{define "title"}}Login{{end}}
+
 {{define "header"}}
 <link href="/static/home.css" rel="stylesheet" >
 {{end}}
+
 {{define "content"}}
-<h1>Hello</h1>
-<script src="/static/home.js"></script>
+<div class="container-fluid">
+    <input class="w-100" id="filter">
+    <div id="root"></div>
+</div>
+
+<script>
+    const root = document.getElementById("root");
+    const filter = document.getElementById("filter");
+    const files = JSON.parse('{{.}}');
+    displayFiles();
+
+    function displayFiles() {
+        const filterText = filter.value;
+
+        let displayedFiles = files.filter(it => it.Name.includes(filterText));
+
+        root.innerHTML = ""
+        for(let i = 0; i < displayedFiles.length; i++) {
+            root.innerHTML += displayedFiles[i].Name + "\n";
+        }
+    }
+
+    filter.addEventListener('input', function (evt) {
+        displayFiles()
+    });
+</script>
 {{end}}
