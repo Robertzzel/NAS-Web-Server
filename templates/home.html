@@ -17,6 +17,27 @@
             <input id="filter">
         </div>
         <div class="col">
+            <div class="dropdown action-dropdown">
+                <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
+                <ul class="dropdown-menu">
+                    <li>
+                        <a type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            Add files
+                        </a>
+                    </li>
+                    <li>
+                        <form class="d-flex flex-row" action="/create" method="post">
+                            <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                Create directory
+                            </button>
+                            <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
+                            <input type="text" name="name">
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col">
             <select id="sortingSelect">
                 <option value="1">Name ascending</option>
                 <option value="2">Name descending</option>
@@ -33,7 +54,7 @@
     const filter = document.getElementById("filter");
     const select = document.getElementById("sortingSelect");
     const currentPath = "{{.CurrentPath}}";
-    document.getElementById("back-btn").innerHTML = `<a class="w-25 btn btn-primary" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
+    document.getElementById("back-btn").innerHTML = `<a class="btn btn-primary" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
     const files = JSON.parse('{{.Files}}');
     displayFiles(true, select.value);
 
@@ -111,11 +132,6 @@
                                       <input type="text" name="new-name" value="${elem.Name}">
                                       <input type="text" name="old-path" value="${currentPath}/${elem.Name}" style="display: none">
                                     </form></li>
-                                    <li>
-                                      <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                        Move to
-                                      </button>
-                                    </li>
                                   </ul>
                                 </div>
                               </div>`
