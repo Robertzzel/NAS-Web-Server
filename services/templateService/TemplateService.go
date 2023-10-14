@@ -21,7 +21,7 @@ func GetLoginPage(w io.Writer) error {
 	return GetPage(w, "templates/login.html")
 }
 
-func GetFilesPage(w io.Writer, files []models.FileDetails) error {
+func GetFilesPage(w io.Writer, files []models.FileDetails, currentPath string) error {
 	t, err := template.ParseFiles("templates/base.html", "templates/home.html")
 	if err != nil {
 		return err
@@ -37,5 +37,13 @@ func GetFilesPage(w io.Writer, files []models.FileDetails) error {
 		sendData = []byte("")
 	}
 
-	return t.Execute(w, string(sendData))
+	v := struct {
+		Files       string
+		CurrentPath string
+	}{
+		string(sendData),
+		currentPath,
+	}
+
+	return t.Execute(w, v)
 }

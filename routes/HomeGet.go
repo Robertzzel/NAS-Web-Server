@@ -6,6 +6,7 @@ import (
 	"NAS-Server-Web/services/templateService"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
 
 func HomeGet(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +36,7 @@ func HomeGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := templateService.GetFilesPage(w, files); err != nil {
+	if err := templateService.GetFilesPage(w, files, strings.TrimPrefix(path, session.BasePath)); err != nil {
 		println(err.Error())
 	}
 }

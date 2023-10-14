@@ -6,29 +6,74 @@
 
 {{define "content"}}
 <div class="container-fluid">
-    <input class="w-100" id="filter">
-    <div id="root"></div>
+    <div class="d-flex flex-row">
+        <p class="w-25">{{.CurrentPath}}</p>
+        <input class="w-50" id="filter">
+        <select id="sortingSelect" class="w-25">
+            <option value="1">Name ascending</option>
+            <option value="2" selected="selected">Name descending</option>
+            <option value="3">Created ascending</option>
+            <option value="4">Created descending</option>
+        </select>
+    </div>
+    <div id="root" class="row"></div>
 </div>
 
 <script>
     const root = document.getElementById("root");
     const filter = document.getElementById("filter");
-    const files = JSON.parse('{{.}}');
-    displayFiles();
+    const select = document.getElementById("sortingSelect")
+    const files = JSON.parse('{{.Files}}');
+    displayFiles(true, select.value);
 
-    function displayFiles() {
-        const filterText = filter.value;
+    function displayFiles(filterByInput, sort) {
+        let displayedFiles = files;
 
-        let displayedFiles = files.filter(it => it.Name.includes(filterText));
-
-        root.innerHTML = ""
-        for(let i = 0; i < displayedFiles.length; i++) {
-            root.innerHTML += displayedFiles[i].Name + "\n";
+        if(filterByInput === true) {
+            displayedFiles = displayedFiles.filter(it => it.Name.includes(filter.value));
         }
+
+        switch (sort) {
+            case "1": // Name ascending
+                displayedFiles = displayedFiles.slice().sort((a, b) => a.Name.localeCompare(b.Name));
+                break;
+            case "2": // Name descending
+                displayedFiles = displayedFiles.slice().sort((a, b) => b.Name.localeCompare(a.Name));
+                break;
+            case "3": // Created ascending
+                displayedFiles = displayedFiles.slice().sort((a, b) => a.CreatingTime - b.CreatingTime);
+                break;
+            case "4": // Created descending
+                displayedFiles = displayedFiles.slice().sort((a, b) => b.CreatingTime - a.CreatingTime);
+                break;
+            default:
+        }
+
+        let htmlContent = ""
+        for(let i = 0; i < displayedFiles.length; i++) {
+            const elem = displayedFiles[i];
+            let imageSrc = "";
+            if(elem.ImageData !== null) {
+                imageSrc = `data:image/jpeg;base64,${elem.ImageData}`;
+            }
+            htmlContent += `<div class="card col-md-4" style="width: 18rem;">
+                              <img src="${imageSrc}" class="card-img-top" alt="image">
+                              <div class="card-body">
+                                <h5 class="card-title">${elem.Name}</h5>
+                                <p class="card-text">${elem.Name}${elem.CreatingTime}</p>
+                                <a href="#" class="btn btn-primary">Go somewhere</a>
+                              </div>
+                            </div>`
+        }
+        root.innerHTML = htmlContent;
     }
 
-    filter.addEventListener('input', function (evt) {
-        displayFiles()
+    filter.addEventListener('input', function (e) {
+        displayFiles(true, select.value);
     });
+    select.addEventListener("change", function(e) {
+        displayFiles(true, select.value);
+    });
+
 </script>
 {{end}}

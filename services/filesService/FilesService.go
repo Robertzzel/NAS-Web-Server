@@ -11,6 +11,7 @@ import (
 	"github.com/nfnt/resize"
 	"image"
 	"image/jpeg"
+	_ "image/png"
 	"io"
 	"mime"
 	"net/http"
