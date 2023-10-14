@@ -17,12 +17,22 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/static/{file}", routes.BaseRootGet)
+	fs := http.FileServer(http.Dir("./static/"))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+
+	r.HandleFunc("/", routes.Redirect).Methods("GET")
 
 	r.HandleFunc("/login", routes.LoginGet).Methods("GET")
 	r.HandleFunc("/login", routes.LoginPost).Methods("POST")
 
-	r.HandleFunc("/home", routes.HomeGet).Methods("GET")
+	r.HandleFunc("/home/{path:.*}", routes.HomeGet).Methods("GET")
+
+	r.HandleFunc("/cd", routes.CdPost).Methods("POST")
+	r.HandleFunc("/cd", routes.Redirect).Methods("GET")
+
+	r.HandleFunc("/cdup", routes.CdupPost).Methods("POST")
+	r.HandleFunc("/cdup", routes.Redirect).Methods("GET")
+
 	//r.HandleFunc("/api/list", ListPost).Methods("POST")
 	//r.HandleFunc("/api/rm", RemovePost).Methods("POST")
 	//r.HandleFunc("/api/dwat/{file}", DownloadFileAttachmentGet).Methods("GET")
@@ -33,6 +43,6 @@ func main() {
 	//r.HandleFunc("/api/rename", RenameFilePost).Methods("POST")
 	//r.HandleFunc("/api/details", UserDetailsGet).Methods("GET")
 
-	fmt.Print("Starting")
+	fmt.Println("Starting on " + configs.GetHost() + ":" + configs.GetPort())
 	log.Fatal(http.ListenAndServe(configs.GetHost()+":"+configs.GetPort(), r))
 }

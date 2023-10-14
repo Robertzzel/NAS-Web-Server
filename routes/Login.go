@@ -49,5 +49,5 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, cookie)
 
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
+	http.Redirect(w, r, "/home/", http.StatusSeeOther)
 }

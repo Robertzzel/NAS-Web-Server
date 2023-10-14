@@ -7,13 +7,16 @@
 {{define "content"}}
 <div class="container-fluid">
     <div class="d-flex flex-row">
-        <p class="w-25">{{.CurrentPath}}</p>
-        <input class="w-50" id="filter">
+        <p class="w-25" id="currentPath">{{.CurrentPath}}</p>
+        <div class="w-25" id="back-btn">
+
+        </div>
+        <input class="w-25" id="filter">
         <select id="sortingSelect" class="w-25">
             <option value="1">Name ascending</option>
-            <option value="2" selected="selected">Name descending</option>
+            <option value="2">Name descending</option>
             <option value="3">Created ascending</option>
-            <option value="4">Created descending</option>
+            <option value="4" selected="selected">Created descending</option>
         </select>
     </div>
     <div id="root" class="row"></div>
@@ -22,7 +25,9 @@
 <script>
     const root = document.getElementById("root");
     const filter = document.getElementById("filter");
-    const select = document.getElementById("sortingSelect")
+    const select = document.getElementById("sortingSelect");
+    const currentPath = document.getElementById("currentPath").innerText;
+    document.getElementById("back-btn").innerHTML = `<a class="w-25" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
     const files = JSON.parse('{{.Files}}');
     displayFiles(true, select.value);
 
@@ -52,18 +57,42 @@
         let htmlContent = ""
         for(let i = 0; i < displayedFiles.length; i++) {
             const elem = displayedFiles[i];
-            let imageSrc = "";
-            if(elem.ImageData !== null) {
-                imageSrc = `data:image/jpeg;base64,${elem.ImageData}`;
+            htmlContent += `<div class="card col-md-4" style="width: 18rem;">`
+
+            switch (true) {
+                case elem.IsDir:
+                    htmlContent += `<a href="/home${currentPath}/${elem.Name}"><input type="image" src="/static/directory.png" class="card-img-top" alt="diretory"></a>`
+                    break;
+                case elem.Type.includes("zip") || elem.Type.includes('compressed'):
+                    htmlContent += `<img src="/static/zip.png" class="card-img-top" alt="image">`
+                    break;
+                case elem.Type.includes('pdf'):
+                    htmlContent += `<img src="/static/pdf.png" class="card-img-top" alt="image">`
+                    break;
+                case elem.Type.includes('html'):
+                    htmlContent += `<img src="/static/html.png" class="card-img-top" alt="image">`
+                    break;
+                case elem.Type.includes('xml'):
+                    htmlContent += `<img src="/static/xml.png" class="card-img-top" alt="image">`
+                    break;
+                case elem.Type.includes('image') && elem.ImageData !== null:
+                    htmlContent += `<img src="data:image/jpeg;base64,${elem.ImageData}" class="card-img-top" alt="image">`
+                    break;
+                case elem.Type.includes('image'):
+                    htmlContent += `<img src="/static/image.png" class="card-img-top" alt="image">`
+                    break;
+                default:
+                    htmlContent += `<img src="/static/file.png" class="card-img-top" alt="image">`
+                    break;
             }
-            htmlContent += `<div class="card col-md-4" style="width: 18rem;">
-                              <img src="${imageSrc}" class="card-img-top" alt="image">
-                              <div class="card-body">
+
+            htmlContent += `<div class="card-body">
                                 <h5 class="card-title">${elem.Name}</h5>
                                 <p class="card-text">${elem.Name}${elem.CreatingTime}</p>
                                 <a href="#" class="btn btn-primary">Go somewhere</a>
-                              </div>
-                            </div>`
+                              </div>`
+
+            htmlContent += `</div>`
         }
         root.innerHTML = htmlContent;
     }

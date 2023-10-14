@@ -4,13 +4,12 @@ import (
 	"NAS-Server-Web/services/filesService"
 	"NAS-Server-Web/services/sessionService"
 	"NAS-Server-Web/services/templateService"
-	"github.com/gorilla/mux"
 	"net/http"
 	"path/filepath"
 	"strings"
 )
 
-func HomeGet(w http.ResponseWriter, r *http.Request) {
+func CdupPost(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("ftp")
 	if err != nil {
 		return
@@ -25,8 +24,13 @@ func HomeGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subpath := strings.TrimPrefix(mux.Vars(r)["path"], "/")
-	path := filepath.Join(session.BasePath, subpath)
+	if !r.PostForm.Has("path") {
+		return
+	}
+
+	path := filepath.Clean(r.FormValue("path"))
+	path = filepath.Dir(path)
+	path = filepath.Join(session.BasePath, path)
 
 	files, err := filesService.GetFilesFromDirectory(path)
 	if err != nil {
