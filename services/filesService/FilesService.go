@@ -16,7 +16,6 @@ import (
 	"mime"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -50,26 +49,21 @@ func UploadFile(session models.UserSession, filename string, reader io.Reader, s
 	return nil
 }
 
-func GetFile(session models.UserSession, filename string) (string, error) {
-	fullFilename := session.BasePath + filename
-	if !IsPathSafe(fullFilename) {
-		return "", errors.New("bad path")
-	}
-
-	fileInfo, err := os.Stat(fullFilename)
+func PrepareFile(filename string) (string, error) {
+	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		return "", errors.New("file does not exist")
 	}
 
 	if fileInfo.IsDir() {
-		outputPath := path.Join(session.BasePath, uuid.New().String())
-		if err = zipDirectory(fullFilename, outputPath); err != nil {
+		outputPath := filepath.Join(filepath.Dir(filename), uuid.New().String())
+		if err = zipDirectory(filename, outputPath); err != nil {
 			return "", errors.New("internal error")
 		}
 		return outputPath, nil
 	}
 
-	return fullFilename, nil
+	return filename, nil
 }
 
 func RemoveFile(filepath string) error {

@@ -21,10 +21,6 @@ func HomeGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		return
-	}
-
 	subpath := strings.TrimPrefix(mux.Vars(r)["path"], "/")
 	path := filepath.Join(session.BasePath, subpath)
 

@@ -6,18 +6,24 @@
 
 {{define "content"}}
 <div class="container-fluid">
-    <div class="d-flex flex-row">
-        <p class="w-25" id="currentPath">{{.CurrentPath}}</p>
-        <div class="w-25" id="back-btn">
-
+    <div class="row">
+        <div class="col">
+            <p id="currentPath">{{.CurrentPath}}</p>
         </div>
-        <input class="w-25" id="filter">
-        <select id="sortingSelect" class="w-25">
-            <option value="1">Name ascending</option>
-            <option value="2">Name descending</option>
-            <option value="3">Created ascending</option>
-            <option value="4" selected="selected">Created descending</option>
-        </select>
+        <div class="col">
+             <div id="back-btn"></div>
+        </div>
+        <div class="col">
+            <input id="filter">
+        </div>
+        <div class="col">
+            <select id="sortingSelect">
+                <option value="1">Name ascending</option>
+                <option value="2">Name descending</option>
+                <option value="3">Created ascending</option>
+                <option value="4" selected="selected">Created descending</option>
+            </select>
+        </div>
     </div>
     <div id="root" class="row"></div>
 </div>
@@ -26,7 +32,7 @@
     const root = document.getElementById("root");
     const filter = document.getElementById("filter");
     const select = document.getElementById("sortingSelect");
-    const currentPath = document.getElementById("currentPath").innerText;
+    const currentPath = "{{.CurrentPath}}";
     document.getElementById("back-btn").innerHTML = `<a class="w-25 btn btn-primary" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
     const files = JSON.parse('{{.Files}}');
     displayFiles(true, select.value);
@@ -98,11 +104,13 @@
                                     <li>
                                         <a class="btn" href="/file/${currentPath}/${elem.Name}" target="_blank">Download</a>
                                     </li>
-                                    <li>
-                                      <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    <li><form class="d-flex flex-row" action="/rename" method="post">
+                                      <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                         Rename
                                       </button>
-                                    </li>
+                                      <input type="text" name="new-name" value="${elem.Name}">
+                                      <input type="text" name="old-path" value="${currentPath}/${elem.Name}" style="display: none">
+                                    </form></li>
                                     <li>
                                       <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                         Move to

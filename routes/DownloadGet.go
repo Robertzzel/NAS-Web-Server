@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"NAS-Server-Web/services/filesService"
 	"NAS-Server-Web/services/sessionService"
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,15 +27,20 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 	subpath := mux.Vars(r)["path"]
 	filePath := filepath.Join(session.BasePath, subpath)
 
-	fileInfo, err := os.Stat(filePath)
+	fileToSend, err := filesService.PrepareFile(filePath)
 	if err != nil {
 		return
 	}
 
-	setHeaders(w, filePath, strconv.Itoa(int(fileInfo.Size())))
+	fileInfo, err := os.Stat(fileToSend)
+	if err != nil {
+		return
+	}
+
+	setHeaders(w, filepath.Base(filePath)+".zip", strconv.Itoa(int(fileInfo.Size())))
 	w.WriteHeader(http.StatusOK)
 
-	fileHandler, err := os.Open(filePath)
+	fileHandler, err := os.Open(fileToSend)
 	if err != nil {
 		return
 	}
@@ -42,6 +49,18 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 	_, err = io.Copy(w, fileHandler)
 	if err != nil {
 		return
+	}
+
+	originalFileStat, err := os.Stat(filePath)
+	if err != nil {
+		return
+	}
+
+	if originalFileStat.IsDir() {
+		err := os.Remove(fileToSend)
+		if err != nil {
+			log.Println("Cannot delete remnant on zipping", filePath, "zip name", fileToSend, err.Error())
+		}
 	}
 }
 
