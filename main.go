@@ -27,12 +27,9 @@ func main() {
 
 	r.HandleFunc("/home/{path:.*}", routes.HomeGet).Methods("GET")
 
-	r.HandleFunc("/cd", routes.CdPost).Methods("POST")
-	r.HandleFunc("/cd", routes.Redirect).Methods("GET")
+	r.HandleFunc("/delete/{path:.*}", routes.DeleteGet).Methods("GET")
 
-	r.HandleFunc("/cdup", routes.CdupPost).Methods("POST")
-	r.HandleFunc("/cdup", routes.Redirect).Methods("GET")
-
+	r.HandleFunc("/file/{path:.*}", routes.DownloadGet).Methods("GET")
 	//r.HandleFunc("/api/list", ListPost).Methods("POST")
 	//r.HandleFunc("/api/rm", RemovePost).Methods("POST")
 	//r.HandleFunc("/api/dwat/{file}", DownloadFileAttachmentGet).Methods("GET")

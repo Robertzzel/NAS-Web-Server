@@ -18,5 +18,5 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
+	http.Redirect(w, r, "/home/", http.StatusSeeOther)
 }

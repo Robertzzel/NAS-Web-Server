@@ -27,7 +27,7 @@
     const filter = document.getElementById("filter");
     const select = document.getElementById("sortingSelect");
     const currentPath = document.getElementById("currentPath").innerText;
-    document.getElementById("back-btn").innerHTML = `<a class="w-25" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
+    document.getElementById("back-btn").innerHTML = `<a class="w-25 btn btn-primary" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
     const files = JSON.parse('{{.Files}}');
     displayFiles(true, select.value);
 
@@ -88,8 +88,28 @@
 
             htmlContent += `<div class="card-body">
                                 <h5 class="card-title">${elem.Name}</h5>
-                                <p class="card-text">${elem.Name}${elem.CreatingTime}</p>
-                                <a href="#" class="btn btn-primary">Go somewhere</a>
+                                <p class="card-text">${elem.Size / 1024 / 1024} MB</p>
+                                <div class="dropdown menu-dropdown">
+                                  <img style="width: 4rem;" class="dropdown-toggle btn" src="/static/menu.png" data-bs-toggle="dropdown" aria-expanded="false">
+                                  <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="btn" href="/delete/${currentPath}/${elem.Name}">Delete</a>
+                                    </li>
+                                    <li>
+                                        <a class="btn" href="/file/${currentPath}/${elem.Name}" target="_blank">Download</a>
+                                    </li>
+                                    <li>
+                                      <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        Rename
+                                      </button>
+                                    </li>
+                                    <li>
+                                      <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        Move to
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
                               </div>`
 
             htmlContent += `</div>`
