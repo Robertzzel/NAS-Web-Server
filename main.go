@@ -38,5 +38,5 @@ func main() {
 	r.HandleFunc("/upload", routes.UploadFilesPost).Methods("POST")
 
 	fmt.Println("Starting on " + configs.GetHost() + ":" + configs.GetPort())
-	log.Fatal(http.ListenAndServe(configs.GetHost()+":"+configs.GetPort(), r))
+	log.Fatal(http.ListenAndServeTLS(configs.GetHost()+":"+configs.GetPort(), configs.GetCertificateFilePath(), configs.GetKeyFilePath(), r))
 }
