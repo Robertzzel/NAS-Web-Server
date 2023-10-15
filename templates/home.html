@@ -7,17 +7,17 @@
 {{define "content"}}
 <div class="container-fluid">
     <div class="row">
-        <div class="col">
-            <p id="currentPath">{{.CurrentPath}}</p>
+        <div class="col-2">
+            <p class="w-100 h-100" id="currentPath">{{.CurrentPath}}</p>
         </div>
-        <div class="col">
+        <div class="col-1">
              <div id="back-btn"></div>
         </div>
-        <div class="col">
-            <input id="filter">
+        <div class="col-6">
+            <input id="filter" class="w-100 h-100" placeholder="Search...">
         </div>
-        <div class="col">
-            <div class="dropdown action-dropdown">
+        <div class="col-1">
+            <div class="dropdown action-dropdown w-100 h-100" >
                 <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
                 <ul class="dropdown-menu">
                     <li>
@@ -39,8 +39,8 @@
                 </ul>
             </div>
         </div>
-        <div class="col">
-            <select id="sortingSelect">
+        <div class="col-2">
+            <select id="sortingSelect" class="w-100 h-100">
                 <option value="1">Name ascending</option>
                 <option value="2">Name descending</option>
                 <option value="3">Created ascending</option>
@@ -56,7 +56,7 @@
     const filter = document.getElementById("filter");
     const select = document.getElementById("sortingSelect");
     const currentPath = "{{.CurrentPath}}";
-    document.getElementById("back-btn").innerHTML = `<a class="btn btn-primary" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
+    document.getElementById("back-btn").innerHTML = `<a class="btn btn-primary w-100 h-100" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}">BACK</a>`;
     const files = JSON.parse('{{.Files}}');
     displayFiles(true, select.value);
 

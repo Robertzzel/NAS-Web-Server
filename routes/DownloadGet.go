@@ -16,11 +16,13 @@ import (
 func DownloadGet(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("ftp")
 	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	session, err := sessionService.GetSession(cookie)
 	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 

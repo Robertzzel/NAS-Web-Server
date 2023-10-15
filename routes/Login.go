@@ -28,13 +28,16 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	dbInstance, err := databaseService.NewDatabaseService()
 	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	ok, err := dbInstance.Login(username, password)
 	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	if !ok {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -44,6 +47,7 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 	cookie.Expires = time.Now().Add(24 * time.Hour)
 
 	if err = sessionService.NewSession(cookie.Value, username); err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 

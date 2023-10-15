@@ -10,11 +10,13 @@ import (
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("ftp")
 	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	session, err := sessionService.GetSession(cookie)
 	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -30,13 +32,15 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	directoryName := filepath.Clean(r.FormValue("name"))
 	directoryName = filepath.Join(currentPath, directoryName)
 
-	err = os.Mkdir(filepath.Join(session.BasePath, directoryName), 0770)
-	if err != nil {
-		return
-	}
-
 	if currentPath == "." || currentPath == "/" {
 		currentPath = ""
 	}
+
+	err = os.Mkdir(filepath.Join(session.BasePath, directoryName), 0770)
+	if err != nil {
+		http.Redirect(w, r, "/home/"+currentPath, http.StatusSeeOther)
+		return
+	}
+
 	http.Redirect(w, r, "/home/"+currentPath, http.StatusSeeOther)
 }
