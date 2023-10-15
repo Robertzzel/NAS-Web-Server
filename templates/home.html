@@ -21,17 +21,19 @@
                 <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
                 <ul class="dropdown-menu">
                     <li>
-                        <a type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                            Add files
-                        </a>
-                    </li>
-                    <li>
                         <form class="d-flex flex-row" action="/create" method="post">
                             <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 Create directory
                             </button>
                             <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
                             <input type="text" name="name">
+                        </form>
+                    </li>
+                    <li>
+                        <form enctype="multipart/form-data" action="/upload" method="post">
+                            <input class="btn" type="submit" value="Add files" />
+                            <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
+                            <input type="file" name="files" multiple/>
                         </form>
                     </li>
                 </ul>

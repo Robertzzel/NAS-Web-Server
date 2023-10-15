@@ -34,6 +34,8 @@ func main() {
 	r.HandleFunc("/rename", routes.RenamePost).Methods("POST")
 
 	r.HandleFunc("/create", routes.CreatePost).Methods("POST")
+
+	r.HandleFunc("/upload", routes.UploadFilesPost).Methods("POST")
 	//r.HandleFunc("/api/list", ListPost).Methods("POST")
 	//r.HandleFunc("/api/rm", RemovePost).Methods("POST")
 	//r.HandleFunc("/api/dwat/{file}", DownloadFileAttachmentGet).Methods("GET")

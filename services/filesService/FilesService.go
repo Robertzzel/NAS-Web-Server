@@ -20,8 +20,8 @@ import (
 	"strings"
 )
 
-func UploadFile(session models.UserSession, filename string, reader io.Reader, size int64) error {
-	remainingMemory, err := GetUserRemainingMemory(session.Username)
+func UploadFile(username, filename string, reader io.Reader, size int64) error {
+	remainingMemory, err := GetUserRemainingMemory(username)
 	if err != nil {
 		return errors.New("internal error")
 	}
@@ -30,13 +30,11 @@ func UploadFile(session models.UserSession, filename string, reader io.Reader, s
 		return errors.New("no memory for the upload")
 	}
 
-	dstPath := filepath.Join(session.BasePath, filename)
-
-	if !IsPathSafe(dstPath) {
+	if !IsPathSafe(filename) {
 		return errors.New("bad path")
 	}
 
-	create, err := os.Create(dstPath)
+	create, err := os.Create(filename)
 	if err != nil {
 		return errors.New("internal error")
 	}
