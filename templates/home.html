@@ -7,16 +7,16 @@
 {{define "content"}}
 <div class="container-fluid">
     <div class="row">
-        <div class="col-2 d-flex align-middle">
+        <div class="col-md-2 d-flex align-middle">
             <h5 class="w-100 h-100 text-center pt-2 m-0" id="currentPath">{{.CurrentPath}}</h5>
         </div>
         <div class="col-1" id="back-btn">
 
         </div>
-        <div class="col-6">
+        <div class="col-md-6">
             <input id="filter" class="w-100 h-100" placeholder="Search...">
         </div>
-        <div class="col-2">
+        <div class="col-md-2">
             <select id="sortingSelect" class="w-100 h-100">
                 <option value="1">Name ascending</option>
                 <option value="2">Name descending</option>
@@ -24,7 +24,7 @@
                 <option value="4" selected="selected">Created descending</option>
             </select>
         </div>
-        <div class="col-1">
+        <div class="col-md-1">
             <div class="w-100 h-100 d-flex flex-row justify-content-between">
                 <div class="dropdown action-dropdown" >
                     <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
@@ -162,7 +162,7 @@
 
             htmlContent += `<div class="card-body">
                                 <h5 class="card-title">${elem.Name}</h5>
-                                <p class="card-text">${formatFileSize(elem.Size)}</p>
+                                <p class="card-text">${elem.Name},&nbsp;${formatFileSize(elem.Size)}</p>
                                 <div class="dropdown menu-dropdown">
                                   <img style="width: 3rem;" class="dropdown-toggle btn" src="/static/menu.png" data-bs-toggle="dropdown" aria-expanded="false">
                                   <ul class="dropdown-menu">
