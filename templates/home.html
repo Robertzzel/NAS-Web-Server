@@ -7,37 +7,14 @@
 {{define "content"}}
 <div class="container-fluid">
     <div class="row">
-        <div class="col-2">
-            <p class="w-100 h-100" id="currentPath">{{.CurrentPath}}</p>
+        <div class="col-2 d-flex align-middle">
+            <h5 class="w-100 h-100 text-center pt-2 m-0" id="currentPath">{{.CurrentPath}}</h5>
         </div>
-        <div class="col-1">
-             <div id="back-btn"></div>
+        <div class="col-1" id="back-btn">
+
         </div>
         <div class="col-6">
             <input id="filter" class="w-100 h-100" placeholder="Search...">
-        </div>
-        <div class="col-1">
-            <div class="dropdown action-dropdown w-100 h-100" >
-                <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
-                <ul class="dropdown-menu">
-                    <li>
-                        <form class="d-flex flex-row" action="/create" method="post">
-                            <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                Create directory
-                            </button>
-                            <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
-                            <input type="text" name="name">
-                        </form>
-                    </li>
-                    <li>
-                        <form enctype="multipart/form-data" action="/upload" method="post">
-                            <input class="btn" type="submit" value="Add files" />
-                            <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
-                            <input type="file" name="files" multiple/>
-                        </form>
-                    </li>
-                </ul>
-            </div>
         </div>
         <div class="col-2">
             <select id="sortingSelect" class="w-100 h-100">
@@ -47,8 +24,76 @@
                 <option value="4" selected="selected">Created descending</option>
             </select>
         </div>
+        <div class="col-1">
+            <div class="w-100 h-100 d-flex flex-row justify-content-between">
+                <div class="dropdown action-dropdown" >
+                    <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
+                    <ul class="dropdown-menu">
+                        <li>
+                            <form class="d-flex flex-row" action="/create" method="post">
+                                <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    Create directory
+                                </button>
+                                <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
+                                <input type="text" name="name">
+                            </form>
+                        </li>
+                        <li>
+                            <form enctype="multipart/form-data" action="/upload" method="post">
+                                <input class="btn" type="submit" value="Add files" />
+                                <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
+                                <input type="file" name="files" multiple/>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <img data-bs-toggle="modal" data-bs-target="#exampleModal" class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/menu.png" aria-expanded="false">
+            </div>
+        </div>
     </div>
     <div id="root" class="row"></div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Info</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            Used Memory
+                        </div>
+                        <div class="col">
+                            {{.UsedMemory}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Remaining Memory
+                        </div>
+                        <div class="col">
+                            {{.RemainingMemory}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Username
+                        </div>
+                        <div class="col">
+                            {{.Username}}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
 <script>
@@ -86,7 +131,7 @@
         let htmlContent = ""
         for(let i = 0; i < displayedFiles.length; i++) {
             const elem = displayedFiles[i];
-            htmlContent += `<div class="card col-md-4" style="width: 18rem;">`
+            htmlContent += `<div class="card col-md-4" style="width: 10rem;">`
 
             switch (true) {
                 case elem.IsDir:
@@ -117,9 +162,9 @@
 
             htmlContent += `<div class="card-body">
                                 <h5 class="card-title">${elem.Name}</h5>
-                                <p class="card-text">${elem.Size / 1024 / 1024} MB</p>
+                                <p class="card-text">${formatFileSize(elem.Size)}</p>
                                 <div class="dropdown menu-dropdown">
-                                  <img style="width: 4rem;" class="dropdown-toggle btn" src="/static/menu.png" data-bs-toggle="dropdown" aria-expanded="false">
+                                  <img style="width: 2rem;" class="dropdown-toggle btn" src="/static/menu.png" data-bs-toggle="dropdown" aria-expanded="false">
                                   <ul class="dropdown-menu">
                                     <li>
                                         <a class="btn" href="/delete/${currentPath}/${elem.Name}">Delete</a>
@@ -149,6 +194,16 @@
     select.addEventListener("change", function(e) {
         displayFiles(true, select.value);
     });
+
+    function formatFileSize(size) {
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let index = 0;
+        while (size >= 1024 && index < units.length - 1) {
+            size /= 1024;
+            index++;
+        }
+        return `${size.toFixed(2)} ${units[index]}`;
+    }
 
 </script>
 {{end}}

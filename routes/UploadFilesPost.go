@@ -20,13 +20,13 @@ func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := r.FormValue("path")
-	path = filepath.Clean(path)
-
 	err = r.ParseMultipartForm(32 << 20) // 32 MB
 	if err != nil {
 		return
 	}
+
+	path := r.FormValue("path")
+	path = filepath.Clean(path)
 
 	for _, fh := range r.MultipartForm.File["files"] {
 		f, err := fh.Open()
@@ -41,5 +41,8 @@ func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
 		_ = f.Close()
 	}
 
+	if path == "." || path == "" || path == "/" {
+		path = ""
+	}
 	http.Redirect(w, r, "/home/"+path, http.StatusSeeOther)
 }

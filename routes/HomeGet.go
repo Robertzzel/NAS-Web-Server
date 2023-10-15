@@ -31,7 +31,7 @@ func HomeGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := templateService.GetFilesPage(w, files, strings.TrimPrefix(path, session.BasePath)); err != nil {
+	if err := templateService.GetFilesPage(w, files, strings.TrimPrefix(path, session.BasePath), session.Username); err != nil {
 		println(err.Error())
 	}
 }
