@@ -36,15 +36,6 @@ func main() {
 	r.HandleFunc("/create", routes.CreatePost).Methods("POST")
 
 	r.HandleFunc("/upload", routes.UploadFilesPost).Methods("POST")
-	//r.HandleFunc("/api/list", ListPost).Methods("POST")
-	//r.HandleFunc("/api/rm", RemovePost).Methods("POST")
-	//r.HandleFunc("/api/dwat/{file}", DownloadFileAttachmentGet).Methods("GET")
-	//r.HandleFunc("/api/dwin/{file}", DownloadFileInlineGet).Methods("GET")
-	//r.HandleFunc("/api/dwdr/{file}", DownloadDirectoryGet).Methods("GET")
-	//r.HandleFunc("/api/upload/{name}", UploadFilesPost).Methods("POST")
-	//r.HandleFunc("/api/directory", CreateDirectoryPost).Methods("POST")
-	//r.HandleFunc("/api/rename", RenameFilePost).Methods("POST")
-	//r.HandleFunc("/api/details", UserDetailsGet).Methods("GET")
 
 	fmt.Println("Starting on " + configs.GetHost() + ":" + configs.GetPort())
 	log.Fatal(http.ListenAndServe(configs.GetHost()+":"+configs.GetPort(), r))
