@@ -1,7 +1,9 @@
 {
-  "host": "192.168.1.6",
+  "host": "192.168.1.7",
   "port": "8080",
   "databasePath": "./database.db",
-  "baseFilesPath": "./files",
-  "memoryPerUser": "10737418240"
+  "baseFilesPath": "/home/robert/usb_drives/usb1/files",
+  "memoryPerUser": "53687091200",
+  "certificateFilePath": "/home/robert/certificates/rootCA.crt",
+  "keyFilePath": "/home/robert/certificates/rootCA.key"
 }

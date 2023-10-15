@@ -20,6 +20,8 @@ type ConfigsService struct {
 	port          string
 	databasePath  string
 	baseFilesBath string
+	certificateFilePath string
+	keyFilePath string
 	memoryPerUser int64
 }
 
@@ -39,6 +41,8 @@ func NewConfigsService() (*ConfigsService, error) {
 		serviceInstance.port = serviceInstance.data["port"]
 		serviceInstance.databasePath = serviceInstance.data["databasePath"]
 		serviceInstance.baseFilesBath = serviceInstance.data["baseFilesPath"]
+		serviceInstance.certificateFilePath = serviceInstance.data["certificateFilePath"]
+		serviceInstance.keyFilePath = serviceInstance.data["keyFilePath"]
 		serviceInstance.memoryPerUser, err = strconv.ParseInt(serviceInstance.data["memoryPerUser"], 10, 64)
 		if err != nil {
 			return nil, err
@@ -66,4 +70,12 @@ func (service ConfigsService) GetBaseFilesPath() string {
 
 func (service ConfigsService) GetMemoryPerUser() int64 {
 	return service.memoryPerUser
+}
+
+func (service ConfigsService) GetCertificateFilePath() string {
+	return service.certificateFilePath
+}
+
+func (service ConfigsService) GetKeyFilePath() string {
+	return service.keyFilePath
 }
