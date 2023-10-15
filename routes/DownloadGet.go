@@ -40,7 +40,7 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if fileInfo.IsDir() {
-		setHeaders(w, filepath.Base(filePath)+".zip", strconv.ItoA(int(fileInfo.Size())))
+		setHeaders(w, filepath.Base(filePath)+".zip", strconv.Itoa(int(fileInfo.Size())))
 	} else {
 		setHeaders(w, filepath.Base(filePath), strconv.Itoa(int(fileInfo.Size())))
 	}
