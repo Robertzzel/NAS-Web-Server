@@ -142,19 +142,19 @@
                     htmlContent += `<img src="/static/zip.png" class="card-img-top" alt="image">`
                     break;
                 case elem.Type.includes('pdf'):
-                    htmlContent += `<img src="/static/pdf.png" class="card-img-top" alt="image">`
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/pdf.png" class="card-img-top" alt="image"></a>`
                     break;
                 case elem.Type.includes('html'):
-                    htmlContent += `<img src="/static/html.png" class="card-img-top" alt="image">`
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/html.png" class="card-img-top" alt="image"></a>`
                     break;
                 case elem.Type.includes('xml'):
-                    htmlContent += `<img src="/static/xml.png" class="card-img-top" alt="image">`
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/xml.png" class="card-img-top" alt="image"></a>`
                     break;
                 case elem.Type.includes('image') && elem.ImageData !== null:
-                    htmlContent += `<img src="data:image/jpeg;base64,${elem.ImageData}" class="card-img-top" alt="image">`
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="data:image/jpeg;base64,${elem.ImageData}" class="card-img-top" alt="image"></a>`
                     break;
                 case elem.Type.includes('image'):
-                    htmlContent += `<img src="/static/image.png" class="card-img-top" alt="image">`
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/image.png" class="card-img-top" alt="image"></a>`
                     break;
                 default:
                     htmlContent += `<img src="/static/file.png" class="card-img-top" alt="image">`
