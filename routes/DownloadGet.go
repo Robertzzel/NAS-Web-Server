@@ -5,8 +5,6 @@ import (
 	"NAS-Server-Web/services/sessionService"
 	"fmt"
 	"github.com/gorilla/mux"
-	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,48 +24,26 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subpath := mux.Vars(r)["path"]
+	subpath := filepath.Clean(mux.Vars(r)["path"])
 	filePath := filepath.Join(session.BasePath, subpath)
 
-	fileToSend, err := filesService.PrepareFile(filePath)
-	if err != nil {
-		return
-	}
-
-	fileInfo, err := os.Stat(fileToSend)
+	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		return
 	}
 
 	if fileInfo.IsDir() {
-		setHeaders(w, filepath.Base(filePath)+".zip", strconv.Itoa(int(fileInfo.Size())))
+		setHeaders(w, filepath.Base(filePath)+".zip", "")
 	} else {
 		setHeaders(w, filepath.Base(filePath), strconv.Itoa(int(fileInfo.Size())))
 	}
-	w.WriteHeader(http.StatusOK)
 
-	fileHandler, err := os.Open(fileToSend)
-	if err != nil {
-		return
-	}
-	defer fileHandler.Close()
-
-	_, err = io.Copy(w, fileHandler)
-	if err != nil {
-		return
+	if err = filesService.SendFile(filePath, w); err != nil {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	originalFileStat, err := os.Stat(filePath)
-	if err != nil {
-		return
-	}
-
-	if originalFileStat.IsDir() {
-		err := os.Remove(fileToSend)
-		if err != nil {
-			log.Println("Cannot delete remnant on zipping", filePath, "zip name", fileToSend, err.Error())
-		}
-	}
 }
 
 func setHeaders(w http.ResponseWriter, name, len string) {
@@ -76,7 +52,9 @@ func setHeaders(w http.ResponseWriter, name, len string) {
 	//Tells client what filename should be used.
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, name))
 	//The length of the data.
-	w.Header().Set("Content-Length", len)
+	if len != "" {
+		w.Header().Set("Content-Length", len)
+	}
 	//No cache headers.
 	w.Header().Set("Cache-Control", "private")
 	//No cache headers.

@@ -31,6 +31,8 @@ func main() {
 
 	r.HandleFunc("/file/{path:.*}", routes.DownloadGet).Methods("GET")
 
+	r.HandleFunc("/inline/{path:.*}", routes.InlineFileGet).Methods("GET")
+
 	r.HandleFunc("/rename", routes.RenamePost).Methods("POST")
 
 	r.HandleFunc("/create", routes.CreatePost).Methods("POST")
