@@ -24,7 +24,7 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subpath := mux.Vars(r)["path"]
+	subpath := filepath.Clean(mux.Vars(r)["path"])
 	filePath := filepath.Join(session.BasePath, subpath)
 
 	fileInfo, err := os.Stat(filePath)
