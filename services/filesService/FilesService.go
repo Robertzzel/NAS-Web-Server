@@ -7,7 +7,6 @@ import (
 	"bytes"
 	_ "encoding/json"
 	"errors"
-	"github.com/google/uuid"
 	"github.com/nfnt/resize"
 	"image"
 	"image/jpeg"
@@ -47,21 +46,24 @@ func UploadFile(username, filename string, reader io.Reader, size int64) error {
 	return nil
 }
 
-func PrepareFile(filename string) (string, error) {
+func SendFile(filename string, w io.Writer) error {
 	fileInfo, err := os.Stat(filename)
 	if err != nil {
-		return "", errors.New("file does not exist")
+		return err
 	}
 
 	if fileInfo.IsDir() {
-		outputPath := filepath.Join(filepath.Dir(filename), uuid.New().String())
-		if err = zipDirectory(filename, outputPath); err != nil {
-			return "", errors.New("internal error")
-		}
-		return outputPath, nil
+		return zipDirectory(filename, w)
 	}
 
-	return filename, nil
+	fileHandler, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer fileHandler.Close()
+
+	_, err = io.Copy(w, fileHandler)
+	return err
 }
 
 func RemoveFile(filepath string) error {
@@ -208,14 +210,8 @@ func Resize(filepath string, width, height uint) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func zipDirectory(inputDirectory string, outputFile string) error {
-	file, err := os.Create(outputFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	w := zip.NewWriter(file)
+func zipDirectory(inputDirectory string, outputWriter io.Writer) error {
+	w := zip.NewWriter(outputWriter)
 	defer w.Close()
 
 	walker := func(path string, info os.FileInfo, err error) error {
