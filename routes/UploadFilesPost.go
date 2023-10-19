@@ -1,22 +1,48 @@
 package routes
 
 import (
-	. "NAS-Server-Web/services/filesService"
-	. "NAS-Server-Web/services/sessionService"
-	"github.com/labstack/echo/v4"
+	"NAS-Server-Web/services/filesService"
+	"NAS-Server-Web/services/sessionService"
 	"net/http"
+	"path/filepath"
 )
 
-func UploadFilesPost(c echo.Context) error {
-	session, err := GetSession(c)
+func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("ftp")
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "'message': 'You are not logged in'")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 
-	request := c.Request()
-	if err := UploadFile(session, c.Param("name"), request.Body, request.ContentLength); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+	session, err := sessionService.GetSession(cookie)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 
-	return c.JSON(http.StatusOK, "")
+	err = r.ParseMultipartForm(32 << 20) // 32 MB
+	if err != nil {
+		return
+	}
+
+	path := r.FormValue("path")
+	path = filepath.Clean(path)
+
+	for _, fh := range r.MultipartForm.File["files"] {
+		f, err := fh.Open()
+		if err != nil {
+			continue
+		}
+		dstPath := filepath.Join(session.BasePath, path, fh.Filename)
+		if err := filesService.UploadFile(session.Username, dstPath, f, fh.Size); err != nil {
+			_ = f.Close()
+			continue
+		}
+		_ = f.Close()
+	}
+
+	if path == "." || path == "" || path == "/" {
+		path = ""
+	}
+	http.Redirect(w, r, "/home/"+path, http.StatusSeeOther)
 }

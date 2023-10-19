@@ -1,0 +1,209 @@
+{{define "title"}}Login{{end}}
+
+{{define "header"}}
+<link href="/static/home.css" rel="stylesheet" >
+{{end}}
+
+{{define "content"}}
+<div class="container-fluid pt-1 pb-1">
+    <div class="row">
+        <div class="col-1" id="back-btn">
+
+        </div>
+        <div class="col-md-2 d-flex align-middle">
+            <h5 class="w-100 h-100 text-center pt-2 m-0" id="currentPath">{{.CurrentPath}}</h5>
+        </div>
+        <div class="col-md-6">
+            <input id="filter" class="w-100 h-100" placeholder="Search...">
+        </div>
+        <div class="col-md-2">
+            <select id="sortingSelect" class="w-100 h-100">
+                <option value="1">Name ascending</option>
+                <option value="2">Name descending</option>
+                <option value="3">Created ascending</option>
+                <option value="4" selected="selected">Created descending</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <div class="w-100 h-100 d-flex flex-row justify-content-between">
+                <div class="dropdown action-dropdown" >
+                    <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
+                    <ul class="dropdown-menu">
+                        <li>
+                            <form class="d-flex flex-row" action="/create" method="post">
+                                <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    Create directory
+                                </button>
+                                <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
+                                <input type="text" name="name">
+                            </form>
+                        </li>
+                        <li>
+                            <form enctype="multipart/form-data" action="/upload" method="post">
+                                <input class="btn" type="submit" value="Add files" />
+                                <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
+                                <input type="file" name="files" multiple/>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <img data-bs-toggle="modal" data-bs-target="#exampleModal" class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/menu.png" aria-expanded="false">
+            </div>
+        </div>
+    </div>
+    <div id="root" class="row pt-2"></div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Info</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            Used Memory
+                        </div>
+                        <div class="col">
+                            {{.UsedMemory}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Remaining Memory
+                        </div>
+                        <div class="col">
+                            {{.RemainingMemory}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Username
+                        </div>
+                        <div class="col">
+                            {{.Username}}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    const root = document.getElementById("root");
+    const filter = document.getElementById("filter");
+    const select = document.getElementById("sortingSelect");
+    const currentPath = "{{.CurrentPath}}";
+    document.getElementById("back-btn").innerHTML =
+        `<a class="w-100 h-100" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}"><img style="width: 2.5rem;" src="/static/back.png" alt="<-"></a>`;
+    const files = JSON.parse('{{.Files}}');
+    displayFiles(true, select.value);
+
+    function displayFiles(filterByInput, sort) {
+        let displayedFiles = files;
+
+        if(filterByInput === true) {
+            displayedFiles = displayedFiles.filter(it => it.Name.includes(filter.value));
+        }
+
+        switch (sort) {
+            case "1": // Name ascending
+                displayedFiles = displayedFiles.slice().sort((a, b) => a.Name.localeCompare(b.Name));
+                break;
+            case "2": // Name descending
+                displayedFiles = displayedFiles.slice().sort((a, b) => b.Name.localeCompare(a.Name));
+                break;
+            case "3": // Created ascending
+                displayedFiles = displayedFiles.slice().sort((a, b) => a.CreatingTime - b.CreatingTime);
+                break;
+            case "4": // Created descending
+                displayedFiles = displayedFiles.slice().sort((a, b) => b.CreatingTime - a.CreatingTime);
+                break;
+            default:
+        }
+
+        let htmlContent = ""
+        for(let i = 0; i < displayedFiles.length; i++) {
+            const elem = displayedFiles[i];
+            htmlContent += `<div class="card col-md-4" style="width: 10rem;">`
+
+            switch (true) {
+                case elem.IsDir:
+                    htmlContent += `<a href="/home${currentPath}/${elem.Name}"><input type="image" src="/static/directory.png" class="card-img-top" alt="diretory"></a>`
+                    break;
+                case elem.Type.includes("zip") || elem.Type.includes('compressed'):
+                    htmlContent += `<img src="/static/zip.png" class="card-img-top" alt="image">`
+                    break;
+                case elem.Type.includes('pdf'):
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/pdf.png" class="card-img-top" alt="image"></a>`
+                    break;
+                case elem.Type.includes('html'):
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/html.png" class="card-img-top" alt="image"></a>`
+                    break;
+                case elem.Type.includes('xml'):
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/xml.png" class="card-img-top" alt="image"></a>`
+                    break;
+                case elem.Type.includes('image') && elem.ImageData !== null:
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="data:image/jpeg;base64,${elem.ImageData}" class="card-img-top" alt="image"></a>`
+                    break;
+                case elem.Type.includes('image'):
+                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/image.png" class="card-img-top" alt="image"></a>`
+                    break;
+                default:
+                    htmlContent += `<img src="/static/file.png" class="card-img-top" alt="image">`
+                    break;
+            }
+
+            htmlContent += `<div class="card-body">
+                                <p class="card-text">${elem.Name}<br>${formatFileSize(elem.Size)}</p>
+                                <div class="dropdown menu-dropdown">
+                                  <img style="width: 3rem;" class="dropdown-toggle btn" src="/static/menu.png" data-bs-toggle="dropdown" aria-expanded="false">
+                                  <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="btn" href="/delete/${currentPath}/${elem.Name}">Delete</a>
+                                    </li>
+                                    <li>
+                                        <a class="btn" href="/file/${currentPath}/${elem.Name}">Download</a>
+                                    </li>
+                                    <li><form class="d-flex flex-row" action="/rename" method="post">
+                                      <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        Rename
+                                      </button>
+                                      <input type="text" name="new-name" value="${elem.Name}">
+                                      <input type="text" name="old-path" value="${currentPath}/${elem.Name}" style="display: none">
+                                    </form></li>
+                                  </ul>
+                                </div>
+                              </div>`
+
+            htmlContent += `</div>`
+        }
+        root.innerHTML = htmlContent;
+    }
+
+    filter.addEventListener('input', function (e) {
+        displayFiles(true, select.value);
+    });
+    select.addEventListener("change", function(e) {
+        displayFiles(true, select.value);
+    });
+
+    function formatFileSize(size) {
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let index = 0;
+        while (size >= 1024 && index < units.length - 1) {
+            size /= 1024;
+            index++;
+        }
+        return `${size.toFixed(2)} ${units[index]}`;
+    }
+
+</script>
+{{end}}

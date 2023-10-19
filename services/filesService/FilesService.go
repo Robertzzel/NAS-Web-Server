@@ -4,17 +4,23 @@ import (
 	"NAS-Server-Web/models"
 	"NAS-Server-Web/services/configsService"
 	"archive/zip"
+	"bytes"
+	_ "encoding/json"
 	"errors"
-	"github.com/google/uuid"
+	"github.com/nfnt/resize"
+	"image"
+	"image/jpeg"
+	_ "image/png"
 	"io"
+	"mime"
+	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
 
-func UploadFile(session models.UserSession, filename string, reader io.Reader, size int64) error {
-	remainingMemory, err := GetUserRemainingMemory(session.Username)
+func UploadFile(username, filename string, reader io.Reader, size int64) error {
+	remainingMemory, err := GetUserRemainingMemory(username)
 	if err != nil {
 		return errors.New("internal error")
 	}
@@ -23,13 +29,11 @@ func UploadFile(session models.UserSession, filename string, reader io.Reader, s
 		return errors.New("no memory for the upload")
 	}
 
-	dstPath := filepath.Join(session.BasePath, filename)
-
-	if !IsPathSafe(dstPath) {
+	if !IsPathSafe(filename) {
 		return errors.New("bad path")
 	}
 
-	create, err := os.Create(dstPath)
+	create, err := os.Create(filename)
 	if err != nil {
 		return errors.New("internal error")
 	}
@@ -42,26 +46,24 @@ func UploadFile(session models.UserSession, filename string, reader io.Reader, s
 	return nil
 }
 
-func GetFile(session models.UserSession, filename string) (string, error) {
-	fullFilename := session.BasePath + filename
-	if !IsPathSafe(fullFilename) {
-		return "", errors.New("bad path")
-	}
-
-	fileInfo, err := os.Stat(fullFilename)
+func SendFile(filename string, w io.Writer) error {
+	fileInfo, err := os.Stat(filename)
 	if err != nil {
-		return "", errors.New("file does not exist")
+		return err
 	}
 
 	if fileInfo.IsDir() {
-		outputPath := path.Join(session.BasePath, uuid.New().String())
-		if err = zipDirectory(fullFilename, outputPath); err != nil {
-			return "", errors.New("internal error")
-		}
-		return outputPath, nil
+		return zipDirectory(filename, w)
 	}
 
-	return fullFilename, nil
+	fileHandler, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer fileHandler.Close()
+
+	_, err = io.Copy(w, fileHandler)
+	return err
 }
 
 func RemoveFile(filepath string) error {
@@ -153,14 +155,63 @@ func IsPathSafe(path string) bool {
 	return !strings.Contains(path, "../")
 }
 
-func zipDirectory(inputDirectory string, outputFile string) error {
-	file, err := os.Create(outputFile)
+func GetFilesFromDirectory(path string) ([]models.FileDetails, error) {
+	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer file.Close()
 
-	w := zip.NewWriter(file)
+	if !fileInfo.IsDir() {
+		return nil, errors.New("no directory with this path")
+	}
+
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var contents []models.FileDetails
+	for _, file := range files {
+		fileType, _ := GetFileType(filepath.Join(path, file.Name()))
+		fileDetails := models.FileDetails{Size: 0, Name: file.Name(), IsDir: file.IsDir(), Type: fileType}
+		info, err := file.Info()
+		if err == nil {
+			fileDetails.Size = info.Size()
+			fileDetails.CreatingTime = info.ModTime().Unix()
+		}
+		if strings.Contains(fileType, "image") {
+			fileDetails.ImageData, err = Resize(filepath.Join(path, file.Name()), 64, 64)
+			if err != nil {
+				fileDetails.ImageData = nil
+			}
+		}
+
+		contents = append(contents, fileDetails)
+	}
+
+	return contents, nil
+}
+
+func Resize(filepath string, width, height uint) ([]byte, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+	newImage := resize.Resize(width, height, img, resize.Lanczos3)
+	buffer := new(bytes.Buffer)
+
+	if err = jpeg.Encode(buffer, newImage, nil); err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
+func zipDirectory(inputDirectory string, outputWriter io.Writer) error {
+	w := zip.NewWriter(outputWriter)
 	defer w.Close()
 
 	walker := func(path string, info os.FileInfo, err error) error {
@@ -189,6 +240,26 @@ func zipDirectory(inputDirectory string, outputFile string) error {
 		return nil
 	}
 	return filepath.Walk(inputDirectory, walker)
+}
+
+func GetFileType(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", nil
+	}
+	defer file.Close()
+
+	mimeType := mime.TypeByExtension(filePath)
+	if mimeType == "" {
+		buffer := make([]byte, 512)
+		n, err := file.Read(buffer)
+		if err != nil && err.Error() != "EOF" {
+			return "", err
+		}
+		mimeType = http.DetectContentType(buffer[:n])
+	}
+
+	return mimeType, nil
 }
 
 //func Unzip(source, destination string) error {

@@ -4,7 +4,7 @@ import (
 	"NAS-Server-Web/models"
 	"NAS-Server-Web/services/configsService"
 	"errors"
-	"github.com/labstack/echo/v4"
+	"net/http"
 	"os"
 	"path"
 )
@@ -13,14 +13,8 @@ var (
 	sessions = make(map[string]models.UserSession)
 )
 
-func GetSession(ctx echo.Context) (models.UserSession, error) {
-	request := ctx.Request()
-	authHeaders, exists := request.Header["Authentication"]
-	if !exists || len(authHeaders) != 1 {
-		return models.UserSession{}, errors.New("no authentication header found")
-	}
-
-	session, exists := sessions[authHeaders[0]]
+func GetSession(cookie *http.Cookie) (models.UserSession, error) {
+	session, exists := sessions[cookie.Value]
 	if !exists {
 		return models.UserSession{}, errors.New("session not found")
 	}
