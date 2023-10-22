@@ -227,7 +227,7 @@ func zipDirectory(inputDirectory, userDirPath string, outputWriter io.Writer) er
 		}
 		defer file.Close()
 
-		inZipFile := strings.TrimPrefix(path, userDirPath)
+		inZipFile := strings.TrimPrefix(path, userDirPath+"/")
 		f, err := w.Create(inZipFile)
 		if err != nil {
 			return err
