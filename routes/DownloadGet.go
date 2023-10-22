@@ -38,7 +38,7 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 		setHeaders(w, filepath.Base(filePath), strconv.Itoa(int(fileInfo.Size())))
 	}
 
-	if err = filesService.SendFile(filePath, w); err != nil {
+	if err = filesService.SendFile(filePath, session.BasePath, w); err != nil {
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)

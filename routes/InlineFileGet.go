@@ -37,7 +37,7 @@ func InlineFileGet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, filepath.Base(filePath)))
 
-	if err = filesService.SendFile(filePath, w); err != nil {
+	if err = filesService.SendFile(filePath, session.BasePath, w); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)

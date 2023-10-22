@@ -46,14 +46,14 @@ func UploadFile(username, filename string, reader io.Reader, size int64) error {
 	return nil
 }
 
-func SendFile(filename string, w io.Writer) error {
+func SendFile(filename, userDirPath string, w io.Writer) error {
 	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		return err
 	}
 
 	if fileInfo.IsDir() {
-		return zipDirectory(filename, w)
+		return zipDirectory(filename, userDirPath, w)
 	}
 
 	fileHandler, err := os.Open(filename)
@@ -210,7 +210,7 @@ func Resize(filepath string, width, height uint) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func zipDirectory(inputDirectory string, outputWriter io.Writer) error {
+func zipDirectory(inputDirectory, userDirPath string, outputWriter io.Writer) error {
 	w := zip.NewWriter(outputWriter)
 	defer w.Close()
 
@@ -227,7 +227,8 @@ func zipDirectory(inputDirectory string, outputWriter io.Writer) error {
 		}
 		defer file.Close()
 
-		f, err := w.Create(path)
+		inZipFile := strings.TrimPrefix(path, userDirPath)
+		f, err := w.Create(inZipFile)
 		if err != nil {
 			return err
 		}
