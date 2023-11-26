@@ -3,17 +3,10 @@ package routes
 import (
 	"NAS-Server-Web/services/databaseService"
 	"NAS-Server-Web/services/sessionService"
-	"NAS-Server-Web/services/templateService"
 	"github.com/google/uuid"
 	"net/http"
 	"time"
 )
-
-func LoginGet(w http.ResponseWriter, r *http.Request) {
-	if err := templateService.GetLoginPage(w); err != nil {
-		println(err.Error())
-	}
-}
 
 func LoginPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -31,7 +24,7 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	ok, err := dbInstance.Login(username, password)
+	ok, err := dbInstance.UsernameAndPasswordExists(username, password)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return

@@ -38,39 +38,13 @@ func NewDatabaseService() (*DatabaseService, error) {
 	return instance, nil
 }
 
-func (db *DatabaseService) Login(username, password string) (bool, error) {
+func (db *DatabaseService) UsernameAndPasswordExists(username, password string) (bool, error) {
 	var cnt int
 	err := db.QueryRow(`select count(*) from User where Name = ? and Password = ? LIMIT 1`, username, hash(password)).Scan(&cnt)
 	if err != nil {
 		return false, errors.New("database problem")
 	}
 	return cnt != 0, nil
-}
-
-func (db *DatabaseService) CheckUsernameExists(username string) (bool, error) {
-	var cnt int
-	err := db.QueryRow(`select count(*) from User where Name = ? LIMIT 1`, username).Scan(&cnt)
-	if err != nil {
-		return false, errors.New("database problem: " + err.Error())
-	}
-	return cnt != 0, nil
-}
-
-func (db *DatabaseService) GetAll() ([]string, error) {
-	var name, password string
-	var res []string
-	row, err := db.Query(`select Name, Password from User`)
-	if err != nil {
-		return nil, err
-	}
-	for row.Next() {
-		err := row.Scan(&name, &password)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, name+","+password+";")
-	}
-	return res, nil
 }
 
 func (db *DatabaseService) AddUser(username, email, password string) error {
