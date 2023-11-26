@@ -1,119 +1,232 @@
-{{define "title"}}Login{{end}}
+{{define "title"}}List{{end}}
 
 {{define "header"}}
-<link href="/static/home.css" rel="stylesheet" >
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 50px;
+    }
+
+    .file-list {
+        padding: 20px;
+    }
+
+    .file-list-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #ddd;
+        padding: 15px 0;
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .file-info img {
+        border-radius: 50%;
+        margin-right: 20px;
+    }
+
+    .file-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .file-size {
+        margin-left: 10px;
+        color: #777;
+    }
+
+    .file-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .actions-btn {
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        color: #fff;
+    }
+
+    .actions-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .actions-btn + .actions-btn {
+        margin-left: 10px;
+    }
+
+    .search-bar {
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .toolbar {
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #f8f9fa;
+    }
+
+    .toolbar button {
+        margin-right: 10px;
+    }
+
+    .sort-select {
+        width: 150px;
+        margin-right: 10px;
+    }
+
+    #info-btn {
+        margin-left: auto;
+        margin-top: 4px;
+    }
+</style>
 {{end}}
 
 {{define "content"}}
-<div class="container-fluid pt-1 pb-1">
-    <div class="row">
-        <div class="col-1" id="back-btn">
 
+<div class="container-fluid d-flex ">
+    <button class="btn btn-warning" id="info-btn" onclick="alert('Used Memory: {{.UsedMemory}}\nRemaining Memory: {{.RemainingMemory}}\nUsername: {{.Username}}')">
+        Info
+    </button>
+</div>
+<div class="container">
+    <div class="toolbar">
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" id="filter" class="search-input" placeholder="Search files...">
         </div>
-        <div class="col-md-2 d-flex align-middle">
-            <h5 class="w-100 h-100 text-center pt-2 m-0" id="currentPath">{{.CurrentPath}}</h5>
-        </div>
-        <div class="col-md-6">
-            <input id="filter" class="w-100 h-100" placeholder="Search...">
-        </div>
-        <div class="col-md-2">
-            <select id="sortingSelect" class="w-100 h-100">
-                <option value="1">Name ascending</option>
-                <option value="2">Name descending</option>
-                <option value="3">Created ascending</option>
-                <option value="4" selected="selected">Created descending</option>
-            </select>
-        </div>
-        <div class="col-md-1">
-            <div class="w-100 h-100 d-flex flex-row justify-content-between">
-                <div class="dropdown action-dropdown" >
-                    <img class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/plus.png" data-bs-toggle="dropdown" aria-expanded="false">
-                    <ul class="dropdown-menu">
-                        <li>
-                            <form class="d-flex flex-row" action="/create" method="post">
-                                <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                    Create directory
-                                </button>
-                                <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
-                                <input type="text" name="name">
-                            </form>
-                        </li>
-                        <li>
-                            <form enctype="multipart/form-data" action="/upload" method="post">
-                                <input class="btn" type="submit" value="Add files" />
-                                <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
-                                <input type="file" name="files" multiple/>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-                <img data-bs-toggle="modal" data-bs-target="#exampleModal" class="dropdown-toggle btn p-0" style="width: 2.5rem;" src="/static/menu.png" aria-expanded="false">
-            </div>
-        </div>
-    </div>
-    <div id="root" class="row pt-2"></div>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Info</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col">
-                            Used Memory
-                        </div>
-                        <div class="col">
-                            {{.UsedMemory}}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            Remaining Memory
-                        </div>
-                        <div class="col">
-                            {{.RemainingMemory}}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            Username
-                        </div>
-                        <div class="col">
-                            {{.Username}}
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
+        <select id="sortingSelect" class="custom-select sort-select">
+            <option value="1">Name ascending</option>
+            <option value="2">Name descending</option>
+            <option value="3">Created ascending</option>
+            <option value="4" selected="selected">Created descending</option>
+        </select>
+
+        <a class="btn btn-secondary" id="back-btn" href="">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <form enctype="multipart/form-data" action="/upload" method="post">
+            <input class="btn btn-primary" type="submit" value="Add selected files" />
+            <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
+            <input class="btn" type="file" name="files" multiple/>
+        </form>
+
     </div>
 
-
+    <div class="file-list" id="fileList"></div>
 </div>
 
 <script>
-    const root = document.getElementById("root");
+
+    const fileList = document.getElementById('fileList');
+    const currentPath = "{{.CurrentPath}}";
     const filter = document.getElementById("filter");
     const select = document.getElementById("sortingSelect");
-    const currentPath = "{{.CurrentPath}}";
-    document.getElementById("back-btn").innerHTML =
-        `<a class="w-100 h-100" type="button" href="/home/${currentPath.split("/").slice(0, -1).join("/")}"><img style="width: 2.5rem;" src="/static/back.png" alt="<-"></a>`;
+    const homeDir = `/home/${currentPath.split("/").slice(0, -1).join("/")}`;
+    document.getElementById("back-btn").href = homeDir;
     const files = JSON.parse('{{.Files}}');
-    displayFiles(true, select.value);
 
-    function displayFiles(filterByInput, sort) {
+    function clearItems() {
+        fileList.innerHTML = "";
+    }
+
+    function addFileItem(image, link, title, size) {
+        // Create a new file item
+        const newItem = document.createElement('div');
+        newItem.classList.add('file-list-item');
+
+        newItem.innerHTML = `
+        <div class="file-info">
+          <a href="${link}"><img src="${image}" alt="File Icon" width="50"></a>
+          <div>
+            <span class="file-title">${title}<br>
+            <span class="file-size">${size}</span>
+          </div>
+        </div>
+        <div class="file-actions">
+          <a class="btn" href="/delete${currentPath}/${title}"><i class="fas fa-trash"></i></a>
+          <a class="btn" href="/file${currentPath}/${title}"><i class="fas fa-download"></i></a>
+          <button class="btn btn-info ml-2" onclick='renameFile("${title}")'>
+            <i class="fas fa-edit"></i>
+          </button>
+        </div>
+      `;
+
+        // Append the new file item to the file list
+        fileList.appendChild(newItem);
+    }
+
+    function renameFile(title) {
+        // Implement rename file functionality here
+        const newName = prompt(`Enter new file name for ${title}:`);
+
+        if (newName === null || newName === "" || newName === title) {
+            return;
+        }
+
+        const url = "/rename";
+
+        // Add form values
+        const form = {
+            'new-name': newName,
+            'old-path': `${currentPath}/${title}`
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Specify the content type as JSON
+            },
+            body: JSON.stringify(form),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+                // Handle the response as needed
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle errors
+                location.reload();
+            });
+    }
+
+    function displayFiles() {
+        clearItems();
         let displayedFiles = files;
 
-        if(filterByInput === true) {
+        if(filter.value !== "" && filter.value !== null) {
             displayedFiles = displayedFiles.filter(it => it.Name.includes(filter.value));
         }
 
-        switch (sort) {
+        switch (select.value) {
             case "1": // Name ascending
                 displayedFiles = displayedFiles.slice().sort((a, b) => a.Name.localeCompare(b.Name));
                 break;
@@ -129,71 +242,49 @@
             default:
         }
 
-        let htmlContent = ""
         for(let i = 0; i < displayedFiles.length; i++) {
             const elem = displayedFiles[i];
-            htmlContent += `<div class="card col-md-4" style="width: 10rem;">`
+            let imageSrc = "";
+            let linkHref = "";
 
             switch (true) {
                 case elem.IsDir:
-                    htmlContent += `<a href="/home${currentPath}/${elem.Name}"><input type="image" src="/static/directory.png" class="card-img-top" alt="diretory"></a>`
+                    imageSrc = "/static/directory.png";
+                    linkHref = `/home${currentPath}/${elem.Name}`;
                     break;
                 case elem.Type.includes("zip") || elem.Type.includes('compressed'):
-                    htmlContent += `<img src="/static/zip.png" class="card-img-top" alt="image">`
+                    imageSrc = "/static/zip.png";
+                    linkHref = `#`;
                     break;
                 case elem.Type.includes('pdf'):
-                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/pdf.png" class="card-img-top" alt="image"></a>`
+                    imageSrc = "/static/pdf.png";
+                    linkHref = `/inline/${currentPath}/${elem.Name}`;
                     break;
                 case elem.Type.includes('html'):
-                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/html.png" class="card-img-top" alt="image"></a>`
+                    imageSrc = "/static/html.png";
+                    linkHref = `/inline/${currentPath}/${elem.Name}`;
                     break;
                 case elem.Type.includes('xml'):
-                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/xml.png" class="card-img-top" alt="image"></a>`
+                    imageSrc = "/static/xml.png";
+                    linkHref = `/inline/${currentPath}/${elem.Name}`;
                     break;
                 case elem.Type.includes('image') && elem.ImageData !== null:
-                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="data:image/jpeg;base64,${elem.ImageData}" class="card-img-top" alt="image"></a>`
+                    imageSrc = `data:image/jpeg;base64,${elem.ImageData}`;
+                    linkHref = `/inline/${currentPath}/${elem.Name}`;
                     break;
                 case elem.Type.includes('image'):
-                    htmlContent += `<a href="/inline/${currentPath}/${elem.Name}"><img src="/static/image.png" class="card-img-top" alt="image"></a>`
+                    imageSrc = `/static/image.png`;
+                    linkHref = `/inline/${currentPath}/${elem.Name}`;
                     break;
                 default:
-                    htmlContent += `<img src="/static/file.png" class="card-img-top" alt="image">`
+                    imageSrc = `/static/file.png`;
+                    linkHref = `/inline/${currentPath}/${elem.Name}`;
                     break;
             }
 
-            htmlContent += `<div class="card-body">
-                                <p class="card-text">${elem.Name}<br>${formatFileSize(elem.Size)}</p>
-                                <div class="dropdown menu-dropdown">
-                                  <img style="width: 3rem;" class="dropdown-toggle btn" src="/static/menu.png" data-bs-toggle="dropdown" aria-expanded="false">
-                                  <ul class="dropdown-menu">
-                                    <li>
-                                        <a class="btn" href="/delete/${currentPath}/${elem.Name}">Delete</a>
-                                    </li>
-                                    <li>
-                                        <a class="btn" href="/file/${currentPath}/${elem.Name}">Download</a>
-                                    </li>
-                                    <li><form class="d-flex flex-row" action="/rename" method="post">
-                                      <button type="submit" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                        Rename
-                                      </button>
-                                      <input type="text" name="new-name" value="${elem.Name}">
-                                      <input type="text" name="old-path" value="${currentPath}/${elem.Name}" style="display: none">
-                                    </form></li>
-                                  </ul>
-                                </div>
-                              </div>`
-
-            htmlContent += `</div>`
+            addFileItem(imageSrc, linkHref, elem.Name, formatFileSize(elem.Size));
         }
-        root.innerHTML = htmlContent;
     }
-
-    filter.addEventListener('input', function (e) {
-        displayFiles(true, select.value);
-    });
-    select.addEventListener("change", function(e) {
-        displayFiles(true, select.value);
-    });
 
     function formatFileSize(size) {
         const units = ['B', 'KB', 'MB', 'GB'];
@@ -205,5 +296,14 @@
         return `${size.toFixed(2)} ${units[index]}`;
     }
 
+    displayFiles()
+
+    filter.addEventListener('input', function (e) {
+        displayFiles();
+    });
+    select.addEventListener("change", function(e) {
+        displayFiles();
+    });
 </script>
+
 {{end}}

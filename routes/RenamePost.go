@@ -3,6 +3,7 @@ package routes
 import (
 	"NAS-Server-Web/services/filesService"
 	"NAS-Server-Web/services/sessionService"
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 )
@@ -24,12 +25,21 @@ func RenamePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !r.PostForm.Has("new-name") || !r.PostForm.Has("old-path") {
+	var data map[string]string
+	err = json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
 		return
 	}
 
-	newName := filepath.Clean(r.FormValue("new-name"))
-	oldPath := filepath.Clean(r.FormValue("old-path"))
+	newName, hasNewName := data["new-name"]
+	oldPath, hasOldPath := data["old-path"]
+	if !hasOldPath || !hasNewName {
+		return
+	}
+
+	newName = filepath.Clean(newName)
+	oldPath = filepath.Clean(oldPath)
 
 	newName = filepath.Join(filepath.Dir(oldPath), newName)
 	fileDirectory := filepath.Dir(oldPath)

@@ -39,9 +39,9 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = filesService.SendFile(filePath, session.BasePath, w); err != nil {
-		w.WriteHeader(http.StatusOK)
-	} else {
 		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
 	}
 
 }
