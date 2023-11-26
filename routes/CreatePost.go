@@ -2,6 +2,7 @@ package routes
 
 import (
 	"NAS-Server-Web/services/sessionService"
+	"encoding/json"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -24,12 +25,21 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !r.PostForm.Has("path") || !r.PostForm.Has("name") {
+	var data map[string]string
+	err = json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
 		return
 	}
 
-	currentPath := filepath.Clean(r.FormValue("path"))
-	directoryName := filepath.Clean(r.FormValue("name"))
+	name, hasNewName := data["name"]
+	path, hasOldPath := data["path"]
+	if !hasOldPath || !hasNewName {
+		return
+	}
+
+	currentPath := filepath.Clean(path)
+	directoryName := filepath.Clean(name)
 	directoryName = filepath.Join(currentPath, directoryName)
 
 	if currentPath == "." || currentPath == "/" {

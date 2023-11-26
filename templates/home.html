@@ -131,6 +131,10 @@
             <i class="fas fa-arrow-left"></i> Back
         </a>
 
+        <button class="btn btn-primary" onclick="createDirectory()">
+            Create directory
+        </button>
+
         <form enctype="multipart/form-data" action="/upload" method="post">
             <input class="btn btn-primary" type="submit" value="Add selected files" />
             <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
@@ -196,6 +200,42 @@
         const form = {
             'new-name': newName,
             'old-path': `${currentPath}/${title}`
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Specify the content type as JSON
+            },
+            body: JSON.stringify(form),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+                // Handle the response as needed
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle errors
+                location.reload();
+            });
+    }
+
+    function createDirectory() {
+        // Implement rename file functionality here
+        const newName = prompt(`Enter a  new directory name:`);
+
+        if (newName === null || newName === "") {
+            return;
+        }
+
+        const url = "/create";
+
+        // Add form values
+        const form = {
+            'path': '{{.CurrentPath}}',
+            'name': newName
         }
 
         fetch(url, {
