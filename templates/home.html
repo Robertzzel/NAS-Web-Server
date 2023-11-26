@@ -103,6 +103,11 @@
         margin-left: auto;
         margin-top: 4px;
     }
+    .overflow-hidden {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 {{end}}
 
@@ -114,28 +119,28 @@
     </button>
 </div>
 <div class="container">
-    <div class="toolbar">
+    <div class="toolbar row">
         <!-- Search Bar -->
-        <div class="search-bar">
+        <div class="search-bar col m-1">
             <input type="text" id="filter" class="search-input" placeholder="Search files...">
         </div>
 
-        <select id="sortingSelect" class="custom-select sort-select">
+        <select id="sortingSelect" class="custom-select sort-select col m-1">
             <option value="1">Name ascending</option>
             <option value="2">Name descending</option>
             <option value="3">Created ascending</option>
             <option value="4" selected="selected">Created descending</option>
         </select>
 
-        <a class="btn btn-secondary" id="back-btn" href="">
+        <a class="btn btn-secondary col m-1" id="back-btn" href="">
             <i class="fas fa-arrow-left"></i> Back
         </a>
 
-        <button class="btn btn-primary" onclick="createDirectory()">
+        <button class="btn btn-primary col m-1" onclick="createDirectory()">
             Create directory
         </button>
 
-        <form enctype="multipart/form-data" action="/upload" method="post">
+        <form enctype="multipart/form-data" action="/upload" class="col m-1" method="post">
             <input class="btn btn-primary" type="submit" value="Add selected files" />
             <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
             <input class="btn" type="file" name="files" multiple/>
@@ -166,7 +171,7 @@
         newItem.classList.add('file-list-item');
 
         newItem.innerHTML = `
-        <div class="file-info">
+        <div class="file-info overflow-hidden">
           <a href="${link}"><img src="${image}" alt="File Icon" width="50"></a>
           <div>
             <span class="file-title">${title}<br>
