@@ -5,6 +5,7 @@ import (
 	"NAS-Server-Web/services/sessionService"
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,14 +13,17 @@ import (
 )
 
 func DownloadGet(w http.ResponseWriter, r *http.Request) {
+	log.Println("INFO_DownloadGet: Called ")
 	cookie, err := r.Cookie("ftp")
 	if err != nil {
+		log.Println("INFO_DownloadGet: No cookie")
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	session, err := sessionService.GetSession(cookie)
 	if err != nil {
+		log.Println("INFO_DownloadGet: no good session ")
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -29,6 +33,7 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
+		log.Println("INFO_DownloadGet: file does not exists: ", filePath)
 		return
 	}
 
@@ -40,7 +45,9 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 
 	if err = filesService.SendFile(filePath, session.BasePath, w); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.Println("INFO_DownloadGet: Cannot send file", filePath)
 	} else {
+		log.Println("INFO_DownloadGet: File sent ", filePath)
 		w.WriteHeader(http.StatusOK)
 	}
 
