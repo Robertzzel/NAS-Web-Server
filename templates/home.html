@@ -113,14 +113,16 @@
 
 {{define "content"}}
 
-<div class="container-fluid d-flex ">
+<div class="container-fluid d-flex">
+    <div class="progress w-100 mr-2 ml-2 mt-3" style="visibility: hidden" >
+        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+    </div>
     <button class="btn btn-warning" id="info-btn" onclick="alert('Used Memory: {{.UsedMemory}}\nRemaining Memory: {{.RemainingMemory}}\nUsername: {{.Username}}')">
         Info
     </button>
 </div>
 <div class="container">
     <div class="toolbar row">
-        <!-- Search Bar -->
         <div class="search-bar col m-1">
             <input type="text" id="filter" class="search-input" placeholder="Search files...">
         </div>
@@ -140,11 +142,11 @@
             Create directory
         </button>
 
-        <form enctype="multipart/form-data" action="/upload" class="col m-1" method="post">
-            <input class="btn btn-primary" type="submit" value="Add selected files" />
+        <div>
+            <input class="btn btn-primary" type="submit" value="Add selected files" onclick="sendFiles()"/>
             <input type="text" name="path" value="{{.CurrentPath}}" style="display: none">
-            <input class="btn" type="file" name="files" multiple/>
-        </form>
+            <input class="btn" id="files-form" type="file" name="files" multiple/>
+        </div>
 
     </div>
 
@@ -340,6 +342,58 @@
         }
         return `${size.toFixed(2)} ${units[index]}`;
     }
+
+    function sendFiles() {
+        const formData = new FormData();
+
+        let files = document.getElementById("files-form").files;
+        console.log(files);
+        for(let i = 0; i < files.length; i++){
+            formData.append(`file-${files[i].name}`, files[i]);
+        }
+        formData.append('path', "{{.CurrentPath}}");
+
+        const xhr = new XMLHttpRequest();
+        const url = '/upload';
+
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                const percentage = (event.loaded / event.total) * 100;
+                setStatusBar(true, percentage)
+            }
+        });
+
+        xhr.open('POST', url, true);
+
+        // Set up other event listeners (load, error, abort, etc.)
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log('Upload complete!');
+            } else {
+                console.error('Error uploading files:', xhr.statusText);
+            }
+        };
+
+        xhr.onerror = function () {
+            console.error('Network error during upload');
+        };
+
+        // Send the FormData with all files
+        xhr.send(formData);
+    }
+
+    function setStatusBar(active, percent) {
+        let progressDiv = document.getElementsByClassName("progress")[0]
+        let progressBar = document.getElementsByClassName("progress-bar")[0]
+        if(!active) {
+            progressDiv.style.visibility = "hidden";
+        } else {
+            progressDiv.style.visibility = "visible";
+            progressBar.style.width = `${percent}%`;
+            progressBar.innerHTML = `${percent}%`;
+        }
+    }
+
 
     displayFiles()
 

@@ -24,7 +24,7 @@ func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = r.ParseMultipartForm(32 << 20) // 32 MB
+	err = r.ParseMultipartForm(128 << 20)
 	if err != nil {
 		log.Println("INFO_UploadFilesPost: cannt parse form", err)
 		return
@@ -33,7 +33,8 @@ func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
 	path := r.FormValue("path")
 	path = filepath.Clean(path)
 
-	for _, fh := range r.MultipartForm.File["files"] {
+	for _, fileSlice := range r.MultipartForm.File {
+		fh := fileSlice[0]
 		f, err := fh.Open()
 		if err != nil {
 			continue
