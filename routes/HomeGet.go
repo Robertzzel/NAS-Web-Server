@@ -1,42 +1,34 @@
 package routes
 
 import (
+	"NAS-Server-Web/configurations"
 	"NAS-Server-Web/services/filesService"
 	"NAS-Server-Web/services/sessionService"
-	"NAS-Server-Web/services/templateService"
+	"NAS-Server-Web/services/templates"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 	"path/filepath"
-	"strings"
 )
 
 func HomeGet(w http.ResponseWriter, r *http.Request) {
-	log.Println("INFO_HomeGet: Called ")
-	cookie, err := r.Cookie("ftp")
-	if err != nil {
-		log.Println("INFO_HomeGet: no cookie ")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	session := sessionService.VerifySession(r)
+	if session.IsNone() {
+		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return
 	}
 
-	session, err := sessionService.GetSession(cookie)
-	if err != nil {
-		log.Println("INFO_HomeGet: no session ")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	path, exists := mux.Vars(r)["path"]
+	if !exists {
+		http.Redirect(w, r, "/files/", http.StatusUnauthorized)
+		return
+	}
+	path = filepath.Clean(path)
+	path = filepath.Join(configurations.Files, session.Unwrap().Username, path)
+
+	files := filesService.GetFilesFromDirectory(path)
+	if files.IsError() {
 		return
 	}
 
-	subpath := strings.TrimPrefix(mux.Vars(r)["path"], "/")
-	path := filepath.Join(session.BasePath, subpath)
-
-	files, err := filesService.GetFilesFromDirectory(path)
-	if err != nil {
-		log.Println("INFO_HomeGet: cannot get files from ", path)
-		return
-	}
-
-	if err := templateService.GetFilesPage(w, files, strings.TrimPrefix(path, session.BasePath), session.Username); err != nil {
-		log.Println("INFO_HomeGet: cannot make template ", err)
-	}
+	_ = templates.WriteFilesPage(w, files.Unwrap(), session.Unwrap().Username)
 }

@@ -1,67 +1,34 @@
 package routes
 
 import (
-	"NAS-Server-Web/services/filesService"
+	"NAS-Server-Web/configurations"
 	"NAS-Server-Web/services/sessionService"
-	"encoding/json"
-	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
 func RenamePost(w http.ResponseWriter, r *http.Request) {
-	log.Println("INFO_RenamePost: called")
-	cookie, err := r.Cookie("ftp")
-	if err != nil {
-		log.Println("INFO_RenamePost: no cookie")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	session := sessionService.VerifySession(r)
+	if session.IsNone() {
+		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return
 	}
 
-	session, err := sessionService.GetSession(cookie)
-	if err != nil {
-		log.Println("INFO_RenamePost: no session")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	newPath := r.URL.Query().Get("new_path")
+	oldPath := r.URL.Query().Get("old_path")
+	if newPath == "" || oldPath == "" {
+		http.Redirect(w, r, "/files/", http.StatusUnauthorized)
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		return
-	}
-
-	var data map[string]string
-	err = json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
-		log.Println("INFO_RenamePost: cannot decode jsn")
-		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
-		return
-	}
-
-	newName, hasNewName := data["new-name"]
-	oldPath, hasOldPath := data["old-path"]
-	if !hasOldPath || !hasNewName {
-		log.Println("INFO_RenamePost: empty request")
-		return
-	}
-
-	log.Println("INFO_RenamePost: called with ", newName, oldPath)
-	newName = filepath.Clean(newName)
+	newPath = filepath.Clean(newPath)
 	oldPath = filepath.Clean(oldPath)
 
-	newName = filepath.Join(filepath.Dir(oldPath), newName)
-	fileDirectory := filepath.Dir(oldPath)
-	if fileDirectory == "." || fileDirectory == "/" {
-		fileDirectory = ""
-	}
+	fullOldPath := filepath.Join(configurations.Files, session.Unwrap().Username, oldPath)
+	fullNewPath := filepath.Join(configurations.Files, session.Unwrap().Username, newPath)
 
-	fullOldPath := filepath.Join(session.BasePath, oldPath)
-	fullNewPath := filepath.Join(session.BasePath, newName)
-	if err = filesService.RenameFile(fullOldPath, fullNewPath); err != nil {
-		log.Println("INFO_RenamePost: cannot rename file")
-		http.Redirect(w, r, "/home/"+fileDirectory, http.StatusSeeOther)
-		return
-	}
+	_ = os.Rename(fullOldPath, fullNewPath)
 
-	log.Println("INFO_RenamePost: file renamed")
-	http.Redirect(w, r, "/home/"+fileDirectory, http.StatusSeeOther)
+	http.Redirect(w, r, "/files/"+filepath.Dir(newPath), http.StatusSeeOther)
 }

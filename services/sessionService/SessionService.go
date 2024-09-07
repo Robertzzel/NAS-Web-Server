@@ -1,37 +1,45 @@
 package sessionService
 
 import (
-	"NAS-Server-Web/models"
-	"NAS-Server-Web/services/configsService"
-	"errors"
+	"NAS-Server-Web/utils"
+	"github.com/google/uuid"
 	"net/http"
-	"os"
-	"path"
+	"time"
 )
 
-var (
-	sessions = make(map[string]models.UserSession)
-)
-
-func GetSession(cookie *http.Cookie) (models.UserSession, error) {
-	session, exists := sessions[cookie.Value]
-	if !exists {
-		return models.UserSession{}, errors.New("session not found")
-	}
-
-	return session, nil
+type Session struct {
+	Expires  time.Time
+	Username string
 }
 
-func NewSession(key string, username string) error {
-	configs, err := configsService.NewConfigsService()
+var (
+	sessions = make(map[string]Session)
+)
+
+func VerifySession(request *http.Request) utils.Maybe[Session] {
+	sessionCookie, err := request.Cookie("ftp")
 	if err != nil {
-		return err
+		return utils.None[Session]()
 	}
 
-	directory := path.Join(configs.GetBaseFilesPath(), username)
-	if _, err := os.Stat(directory); err != nil {
-		return err
+	session, sessionExists := sessions[sessionCookie.Value]
+	if !sessionExists {
+		return utils.None[Session]()
 	}
-	sessions[key] = models.UserSession{BasePath: directory, Username: username}
-	return nil
+
+	sessionExpired := time.Now().After(session.Expires)
+	if sessionExpired {
+		return utils.None[Session]()
+	}
+
+	return utils.Some(session)
+}
+
+func CreateSession(username string) *http.Cookie {
+	cookie := new(http.Cookie)
+	cookie.Name = "ftp"
+	cookie.Value = uuid.NewString()
+
+	sessions[cookie.Value] = Session{Username: username, Expires: time.Now().Add(24 * time.Hour)}
+	return cookie
 }

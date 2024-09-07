@@ -1,15 +1,12 @@
 package filesService
 
 import (
+	"NAS-Server-Web/configurations"
 	"NAS-Server-Web/models"
-	"NAS-Server-Web/services/configsService"
+	"NAS-Server-Web/utils"
 	"archive/zip"
-	"bytes"
 	_ "encoding/json"
 	"errors"
-	"github.com/nfnt/resize"
-	"image"
-	"image/jpeg"
 	_ "image/png"
 	"io"
 	"mime"
@@ -46,14 +43,14 @@ func UploadFile(username, filename string, reader io.Reader, size int64) error {
 	return nil
 }
 
-func SendFile(filename, userDirPath string, w io.Writer) error {
+func SendFile(filename string, w io.Writer) error {
 	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		return err
 	}
 
 	if fileInfo.IsDir() {
-		return zipDirectory(filename, userDirPath, w)
+		return zipDirectory(filename, w)
 	}
 
 	fileHandler, err := os.Open(filename)
@@ -79,25 +76,8 @@ func RemoveFile(filepath string) error {
 	return nil
 }
 
-func RenameFile(oldPath, newPath string) error {
-	if !IsPathSafe(oldPath) || !IsPathSafe(newPath) {
-		return errors.New("bad parameters")
-	}
-
-	if err := os.Rename(oldPath, newPath); err != nil {
-		return errors.New("internal error")
-	}
-
-	return nil
-}
-
 func GetUserUsedMemory(username string) (int64, error) {
-	configs, err := configsService.NewConfigsService()
-	if err != nil {
-		return 0, err
-	}
-
-	entries, err := os.ReadDir(configs.GetBaseFilesPath())
+	entries, err := os.ReadDir(configurations.Files)
 	if err != nil {
 		return 0, err
 	}
@@ -110,7 +90,7 @@ func GetUserUsedMemory(username string) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		dirSize, err := DirSize(configs.GetBaseFilesPath() + "/" + info.Name())
+		dirSize, err := DirSize(configurations.Files + "/" + info.Name())
 		if err != nil {
 			return 0, err
 		}
@@ -121,16 +101,11 @@ func GetUserUsedMemory(username string) (int64, error) {
 }
 
 func GetUserRemainingMemory(username string) (int64, error) {
-	configs, err := configsService.NewConfigsService()
-	if err != nil {
-		return 0, err
-	}
-
 	used, err := GetUserUsedMemory(username)
 	if err != nil {
 		return 0, err
 	}
-	return configs.GetMemoryPerUser() - used, nil
+	return 10*1024*1024*1024 - used, nil
 }
 
 func DirSize(path string) (int64, error) {
@@ -155,22 +130,22 @@ func IsPathSafe(path string) bool {
 	return !strings.Contains(path, "../")
 }
 
-func GetFilesFromDirectory(path string) ([]models.FileDetails, error) {
+func GetFilesFromDirectory(path string) utils.Result[[]models.FileDetails] {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return nil, err
+		return utils.Error[[]models.FileDetails](err)
 	}
 
 	if !fileInfo.IsDir() {
-		return nil, errors.New("no directory with this path")
+		return utils.Error[[]models.FileDetails](errors.New("no directory with this path"))
 	}
 
 	files, err := os.ReadDir(path)
 	if err != nil {
-		return nil, err
+		return utils.Error[[]models.FileDetails](err)
 	}
 
-	var contents []models.FileDetails
+	contents := make([]models.FileDetails, 0)
 	for _, file := range files {
 		fileType, _ := GetFileType(filepath.Join(path, file.Name()))
 		fileDetails := models.FileDetails{Size: 0, Name: file.Name(), IsDir: file.IsDir(), Type: fileType}
@@ -179,38 +154,38 @@ func GetFilesFromDirectory(path string) ([]models.FileDetails, error) {
 			fileDetails.Size = info.Size()
 			fileDetails.CreatingTime = info.ModTime().Unix()
 		}
-		if strings.Contains(fileType, "image") {
-			fileDetails.ImageData, err = Resize(filepath.Join(path, file.Name()), 64, 64)
-			if err != nil {
-				fileDetails.ImageData = nil
-			}
-		}
+		//if strings.Contains(fileType, "image") {
+		//	fileDetails.ImageData, err = Resize(filepath.Join(path, file.Name()), 64, 64)
+		//	if err != nil {
+		//		fileDetails.ImageData = nil
+		//	}
+		//}
 
 		contents = append(contents, fileDetails)
 	}
 
-	return contents, nil
+	return utils.Ok(contents)
 }
 
-func Resize(filepath string, width, height uint) ([]byte, error) {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, err
-	}
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-	newImage := resize.Resize(width, height, img, resize.Lanczos3)
-	buffer := new(bytes.Buffer)
+//func Resize(filepath string, width, height uint) ([]byte, error) {
+//	file, err := os.Open(filepath)
+//	if err != nil {
+//		return nil, err
+//	}
+//	img, _, err := image.Decode(file)
+//	if err != nil {
+//		return nil, err
+//	}
+//	newImage := resize.Resize(width, height, img, resize.Lanczos3)
+//	buffer := new(bytes.Buffer)
+//
+//	if err = jpeg.Encode(buffer, newImage, nil); err != nil {
+//		return nil, err
+//	}
+//	return buffer.Bytes(), nil
+//}
 
-	if err = jpeg.Encode(buffer, newImage, nil); err != nil {
-		return nil, err
-	}
-	return buffer.Bytes(), nil
-}
-
-func zipDirectory(inputDirectory, userDirPath string, outputWriter io.Writer) error {
+func zipDirectory(inputDirectory string, outputWriter io.Writer) error {
 	w := zip.NewWriter(outputWriter)
 	defer w.Close()
 
@@ -227,7 +202,7 @@ func zipDirectory(inputDirectory, userDirPath string, outputWriter io.Writer) er
 		}
 		defer file.Close()
 
-		inZipFile := strings.TrimPrefix(path, userDirPath+"/")
+		inZipFile := "/" + strings.TrimPrefix(path, configurations.Files)
 		f, err := w.Create(inZipFile)
 		if err != nil {
 			return err

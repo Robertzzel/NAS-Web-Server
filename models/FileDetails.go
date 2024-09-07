@@ -5,6 +5,5 @@ type FileDetails struct {
 	Size         int64
 	IsDir        bool
 	Type         string
-	ImageData    []byte
 	CreatingTime int64
 }

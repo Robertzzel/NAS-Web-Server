@@ -1,36 +1,27 @@
 package routes
 
 import (
+	"NAS-Server-Web/configurations"
 	"NAS-Server-Web/services/filesService"
 	"NAS-Server-Web/services/sessionService"
-	"log"
+	"github.com/gorilla/mux"
 	"net/http"
 	"path/filepath"
 )
 
 func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
-	log.Println("INFO_UploadFilesPost: called")
-	cookie, err := r.Cookie("ftp")
-	if err != nil {
-		log.Println("INFO_UploadFilesPost: no cookie")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	session := sessionService.VerifySession(r)
+	if session.IsNone() {
+		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return
 	}
 
-	session, err := sessionService.GetSession(cookie)
+	err := r.ParseMultipartForm(128 << 20)
 	if err != nil {
-		log.Println("INFO_UploadFilesPost: no session")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	err = r.ParseMultipartForm(128 << 20)
-	if err != nil {
-		log.Println("INFO_UploadFilesPost: cannt parse form", err)
-		return
-	}
-
-	path := r.FormValue("path")
+	path := mux.Vars(r)["path"]
 	path = filepath.Clean(path)
 
 	for _, fileSlice := range r.MultipartForm.File {
@@ -39,10 +30,9 @@ func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		dstPath := filepath.Join(session.BasePath, path, fh.Filename)
-		if err := filesService.UploadFile(session.Username, dstPath, f, fh.Size); err != nil {
+		dstPath := filepath.Join(configurations.Files, session.Unwrap().Username, path, fh.Filename)
+		if err := filesService.UploadFile(session.Unwrap().Username, dstPath, f, fh.Size); err != nil {
 			_ = f.Close()
-			log.Println("INFO_UploadFilesPost: cannot upload file")
 			continue
 		}
 		_ = f.Close()
@@ -51,5 +41,5 @@ func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
 	if path == "." || path == "" || path == "/" {
 		path = ""
 	}
-	http.Redirect(w, r, "/home/"+path, http.StatusSeeOther)
+	http.Redirect(w, r, "/files/"+path, http.StatusSeeOther)
 }

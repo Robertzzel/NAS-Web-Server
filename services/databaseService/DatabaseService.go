@@ -1,72 +1,58 @@
 package databaseService
 
 import (
-	"NAS-Server-Web/services/configsService"
+	"NAS-Server-Web/configurations"
+	. "NAS-Server-Web/utils"
 	"crypto/sha256"
 	"database/sql"
-	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type DatabaseService struct {
-	*sql.DB
-}
+var instance *sql.DB = nil
 
-var instance *DatabaseService = nil
-
-func NewDatabaseService() (*DatabaseService, error) {
+func getDatabase() Result[*sql.DB] {
 	if instance == nil {
-		configs, err := configsService.NewConfigsService()
+		db, err := sql.Open("sqlite3", configurations.Database)
 		if err != nil {
-			return nil, err
+			return Error[*sql.DB](err)
 		}
 
-		db, err := sql.Open("sqlite3", configs.GetDatabasePath())
+		_, err = db.Exec(`CREATE TABLE IF NOT EXISTS User(
+			Id integer PRIMARY KEY,
+			Name varchar(255) UNIQUE NOT NULL,
+			Email varchar(255),
+			Password varchar(255) NOT NULL
+		)`)
 		if err != nil {
-			return nil, err
+			return Error[*sql.DB](err)
 		}
 
-		dm := DatabaseService{db}
-		if err = dm.migrateDatabase(); err != nil {
-			return nil, err
-		}
-
-		instance = &dm
+		instance = db
 	}
 
-	return instance, nil
+	return Ok(instance)
 }
 
-func (db *DatabaseService) UsernameAndPasswordExists(username, password string) (bool, error) {
+func CheckUsernameAndPassword(username, password string) Result[bool] {
+	databaseResult := getDatabase()
+	db := databaseResult.Unwrap()
+
 	var cnt int
 	err := db.QueryRow(`select count(*) from User where Name = ? and Password = ? LIMIT 1`, username, hash(password)).Scan(&cnt)
 	if err != nil {
-		return false, errors.New("database problem")
+		return Error[bool](err)
 	}
-	return cnt != 0, nil
+
+	return Ok(cnt != 0)
 }
 
-func (db *DatabaseService) AddUser(username, email, password string) error {
+func AddUser(username, email, password string) error {
+	databaseResult := getDatabase()
+	db := databaseResult.Unwrap()
+
 	_, err := db.Exec(`INSERT INTO User (Name, Email, PASSWORD) VALUES (?, ?, ?)`, username, email, hash(password))
 	return err
-}
-
-func (db *DatabaseService) Close() {
-	db.DB.Close()
-}
-
-func (db *DatabaseService) migrateDatabase() error {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS User(
-    	Id integer PRIMARY KEY,
-		Name varchar(255) UNIQUE NOT NULL,
-		Email varchar(255),
-		Password varchar(255) NOT NULL
-    )`)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func hash(password string) string {
