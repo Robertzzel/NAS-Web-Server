@@ -16,7 +16,7 @@ var (
 	blockedIps sync.Map
 )
 
-func BlockIP(r *http.Request) {
+func BlockIP(r *http.Request) bool {
 	ip := r.RemoteAddr // Get IP address of the requester
 
 	blockInfo, isBlocked := blockedIps.Load(ip)
@@ -24,7 +24,7 @@ func BlockIP(r *http.Request) {
 	if isBlocked {
 		if blockInfo.(time.Time).After(
 			time.Now()) {
-			return
+			return true
 		}
 		blockedIps.Delete(ip)
 	}
@@ -33,8 +33,18 @@ func BlockIP(r *http.Request) {
 		until := time.Now().Add(time.Minute)
 		blockedIps.Store(ip, until)
 		log.Println(ip, "blocked until", until)
-		return
+		return true
 	}
+
+	return false
+}
+
+func BlockIPMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !BlockIP(r) {
+			next.ServeHTTP(w, r)
+		}
+	})
 }
 
 func main() {
@@ -49,6 +59,8 @@ func main() {
 	configurations.SslKeyPath = os.Args[6]
 
 	r := mux.NewRouter()
+
+	r.Use(BlockIPMiddleware)
 
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { BlockIP(r) })
 
