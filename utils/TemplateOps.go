@@ -1,4 +1,4 @@
-package templates
+package utils
 
 import (
 	"NAS-Server-Web/models"

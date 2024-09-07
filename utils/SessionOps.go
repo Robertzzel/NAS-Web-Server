@@ -1,7 +1,6 @@
-package sessionService
+package utils
 
 import (
-	"NAS-Server-Web/utils"
 	"github.com/google/uuid"
 	"net/http"
 	"time"
@@ -16,23 +15,23 @@ var (
 	sessions = make(map[string]Session)
 )
 
-func VerifySession(request *http.Request) utils.Maybe[Session] {
+func VerifySession(request *http.Request) Maybe[Session] {
 	sessionCookie, err := request.Cookie("ftp")
 	if err != nil {
-		return utils.None[Session]()
+		return None[Session]()
 	}
 
 	session, sessionExists := sessions[sessionCookie.Value]
 	if !sessionExists {
-		return utils.None[Session]()
+		return None[Session]()
 	}
 
 	sessionExpired := time.Now().After(session.Expires)
 	if sessionExpired {
-		return utils.None[Session]()
+		return None[Session]()
 	}
 
-	return utils.Some(session)
+	return Some(session)
 }
 
 func CreateSession(username string) *http.Cookie {

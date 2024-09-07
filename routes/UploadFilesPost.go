@@ -2,15 +2,14 @@ package routes
 
 import (
 	"NAS-Server-Web/configurations"
-	"NAS-Server-Web/services/filesService"
-	"NAS-Server-Web/services/sessionService"
+	"NAS-Server-Web/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 	"path/filepath"
 )
 
 func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
-	session := sessionService.VerifySession(r)
+	session := utils.VerifySession(r)
 	if session.IsNone() {
 		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return
@@ -31,7 +30,7 @@ func UploadFilesPost(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		dstPath := filepath.Join(configurations.Files, session.Unwrap().Username, path, fh.Filename)
-		if err := filesService.UploadFile(session.Unwrap().Username, dstPath, f, fh.Size); err != nil {
+		if err := utils.UploadFile(session.Unwrap().Username, dstPath, f, fh.Size); err != nil {
 			_ = f.Close()
 			continue
 		}

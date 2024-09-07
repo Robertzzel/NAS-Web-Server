@@ -2,8 +2,7 @@ package routes
 
 import (
 	"NAS-Server-Web/configurations"
-	"NAS-Server-Web/services/filesService"
-	"NAS-Server-Web/services/sessionService"
+	"NAS-Server-Web/utils"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -13,7 +12,7 @@ import (
 )
 
 func InlineFileGet(w http.ResponseWriter, r *http.Request) {
-	session := sessionService.VerifySession(r)
+	session := utils.VerifySession(r)
 	if session.IsNone() {
 		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return
@@ -35,7 +34,7 @@ func InlineFileGet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, filepath.Base(filePath)))
 
-	if err = filesService.SendFile(filePath, w); err != nil {
+	if err = utils.SendFile(filePath, w); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)

@@ -1,9 +1,8 @@
-package filesService
+package utils
 
 import (
 	"NAS-Server-Web/configurations"
 	"NAS-Server-Web/models"
-	"NAS-Server-Web/utils"
 	"archive/zip"
 	_ "encoding/json"
 	"errors"
@@ -130,19 +129,19 @@ func IsPathSafe(path string) bool {
 	return !strings.Contains(path, "../")
 }
 
-func GetFilesFromDirectory(path string) utils.Result[[]models.FileDetails] {
+func GetFilesFromDirectory(path string) Result[[]models.FileDetails] {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return utils.Error[[]models.FileDetails](err)
+		return Error[[]models.FileDetails](err)
 	}
 
 	if !fileInfo.IsDir() {
-		return utils.Error[[]models.FileDetails](errors.New("no directory with this path"))
+		return Error[[]models.FileDetails](errors.New("no directory with this path"))
 	}
 
 	files, err := os.ReadDir(path)
 	if err != nil {
-		return utils.Error[[]models.FileDetails](err)
+		return Error[[]models.FileDetails](err)
 	}
 
 	contents := make([]models.FileDetails, 0)
@@ -164,7 +163,7 @@ func GetFilesFromDirectory(path string) utils.Result[[]models.FileDetails] {
 		contents = append(contents, fileDetails)
 	}
 
-	return utils.Ok(contents)
+	return Ok(contents)
 }
 
 //func Resize(filepath string, width, height uint) ([]byte, error) {

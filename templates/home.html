@@ -133,8 +133,8 @@
                 filesSlide += `
                     <div class="d-flex flex-column w-min h-min align-items-center col">
                         <div class="d-flex flex-row">
-                        <form method="get" action="/${file.IsDir ?"files":"inline"}/${currentPath}/${file.Name}">
-                            <input type="image" src="/static/${file.IsDir ?"directory":"file"}.png" class="icon-size" alt="hello">
+                        <form method="get" action="/${file.IsDir ? "files" : "inline"}/${currentPath}/${file.Name}">
+                            <input type="image" src="/static/${file.IsDir ? "directory" : "file"}.png" class="icon-size" alt="hello">
                         </form>
                         <div>
                           <button class="file-menu-button" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

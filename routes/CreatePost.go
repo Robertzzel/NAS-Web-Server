@@ -2,7 +2,7 @@ package routes
 
 import (
 	"NAS-Server-Web/configurations"
-	"NAS-Server-Web/services/sessionService"
+	"NAS-Server-Web/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 	"os"
@@ -10,7 +10,7 @@ import (
 )
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
-	sessionCookie := sessionService.VerifySession(r)
+	sessionCookie := utils.VerifySession(r)
 	if sessionCookie.IsNone() {
 		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return

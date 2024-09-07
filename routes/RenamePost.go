@@ -2,14 +2,14 @@ package routes
 
 import (
 	"NAS-Server-Web/configurations"
-	"NAS-Server-Web/services/sessionService"
+	"NAS-Server-Web/utils"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
 func RenamePost(w http.ResponseWriter, r *http.Request) {
-	session := sessionService.VerifySession(r)
+	session := utils.VerifySession(r)
 	if session.IsNone() {
 		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return

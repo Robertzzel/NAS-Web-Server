@@ -1,3 +1,3 @@
-configs.json
-database.db
+database
 main
+*.pem

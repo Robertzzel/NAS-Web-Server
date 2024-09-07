@@ -2,8 +2,7 @@ package routes
 
 import (
 	"NAS-Server-Web/configurations"
-	"NAS-Server-Web/services/filesService"
-	"NAS-Server-Web/services/sessionService"
+	"NAS-Server-Web/utils"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -13,7 +12,7 @@ import (
 )
 
 func DownloadGet(w http.ResponseWriter, r *http.Request) {
-	session := sessionService.VerifySession(r)
+	session := utils.VerifySession(r)
 	if session.IsNone() {
 		http.Redirect(w, r, "/login-user", http.StatusUnauthorized)
 		return
@@ -34,7 +33,7 @@ func DownloadGet(w http.ResponseWriter, r *http.Request) {
 		setHeaders(w, filepath.Base(filePath), strconv.Itoa(int(fileInfo.Size())))
 	}
 
-	if err = filesService.SendFile(filePath, w); err != nil {
+	if err = utils.SendFile(filePath, w); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
